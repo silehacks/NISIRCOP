@@ -70,6 +70,19 @@ services:
       discovery-server:
         condition: service_started
 
+  analytics-service:
+    build: ./analytics-service
+    ports:
+      - "8086:8086"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     image: postgis/postgis:15-3.4
     ports:
