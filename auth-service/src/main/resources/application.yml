@@ -1,0 +1,15 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+
+# This will be loaded from the .env file using Docker Compose
+jwt:
+  secret: ${JWT_SECRET:your-default-secret-for-development}
