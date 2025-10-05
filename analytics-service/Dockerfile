@@ -2,19 +2,18 @@
 FROM python:3.11-slim
 
 # Set the working directory in the container
-WORKDIR /code
+WORKDIR /app
 
-# Copy the requirements file into the container at /code
-COPY ./requirements.txt /code/requirements.txt
+# Copy the dependencies file to the working directory
+COPY requirements.txt .
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the app directory into the container at /code
-COPY ./app /code/app
+# Copy the application code into the container
+COPY ./app /app/app
 
-# Expose the port the app runs on
-EXPOSE 8086
-
-# Run uvicorn server
+# Command to run the application
+# Uvicorn is an ASGI server, ideal for running FastAPI applications
+# --host 0.0.0.0 makes the server accessible from outside the container
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8086"]

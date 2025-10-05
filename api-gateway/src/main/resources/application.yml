@@ -10,17 +10,11 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
-      routes:
-        # This is a placeholder route. As we add more services,
-        # we will add their routes here.
-        - id: incident-service
-          uri: lb://incident-service
-          predicates:
-            - Path=/api/incidents/**
 
 eureka:
   client:
     service-url:
       defaultZone: http://discovery-server:8761/eureka/
-    fetch-registry: true
-    register-with-eureka: true
+
+jwt:
+  secret: ${JWT_SECRET}
