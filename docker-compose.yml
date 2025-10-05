@@ -83,6 +83,13 @@ services:
       postgres:
         condition: service_healthy
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway
+
   postgres:
     image: postgis/postgis:15-3.4
     ports:
