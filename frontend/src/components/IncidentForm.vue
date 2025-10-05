@@ -62,10 +62,17 @@
         </p>
       </div>
 
-      <div>
+      <div class="flex justify-end space-x-4">
+        <button
+          type="button"
+          @click="$emit('close')"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-transparent rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Close
+        </button>
         <button
           type="submit"
-          class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Submit Report
         </button>
@@ -76,37 +83,31 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { createIncident } from '../services/incident.service';
+import { useIncidentStore } from '../stores/incident.store';
+
+const props = defineProps<{
+  latitude: number;
+  longitude: number;
+}>();
+
+const emit = defineEmits(['close']);
+
+const incidentStore = useIncidentStore();
 
 const form = ref({
   title: '',
   description: '',
   incident_type: 'Other',
   priority: 'Medium',
-  latitude: null,
-  longitude: null,
+  latitude: props.latitude,
+  longitude: props.longitude,
 });
 
 const handleSubmit = async () => {
-  // In a real app, you'd get the lat/lon from the map state
-  // For now, let's assume they are set.
-  if (!form.value.latitude || !form.value.longitude) {
-    alert('Please select a location on the map.');
-    return;
-  }
-
   try {
-    await createIncident(form.value);
+    await incidentStore.addIncident(form.value);
     alert('Incident reported successfully!');
-    // Reset form or close modal
-    form.value = {
-      title: '',
-      description: '',
-      incident_type: 'Other',
-      priority: 'Medium',
-      latitude: null,
-      longitude: null,
-    };
+    emit('close');
   } catch (error) {
     console.error('Failed to report incident:', error);
     alert('Failed to report incident. See console for details.');

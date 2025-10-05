@@ -38,7 +38,12 @@
         </div>
         <!-- Incident Form Modal -->
         <div v-if="showIncidentForm" class="absolute inset-0 z-10 flex items-center justify-center bg-black bg-opacity-50">
-          <IncidentForm @close="showIncidentForm = false" />
+          <IncidentForm
+            v-if="newIncidentLocation"
+            :latitude="newIncidentLocation.lat"
+            :longitude="newIncidentLocation.lng"
+            @close="showIncidentForm = false"
+          />
         </div>
       </main>
     </div>
@@ -47,15 +52,20 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '../stores/auth.store';
+import { useIncidentStore } from '../stores/incident.store';
 import { useRouter } from 'vue-router';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watchEffect } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import IncidentForm from '../components/IncidentForm.vue';
 
 const authStore = useAuthStore();
+const incidentStore = useIncidentStore();
 const router = useRouter();
 const showIncidentForm = ref(false);
+const newIncidentLocation = ref<{ lat: number; lng: number } | null>(null);
+const map = ref<L.Map | null>(null);
+const markerLayer = ref<L.LayerGroup | null>(null);
 
 const handleLogout = () => {
   authStore.logout();
@@ -64,10 +74,32 @@ const handleLogout = () => {
 
 onMounted(() => {
   // Initialize map
-  const map = L.map('map-container').setView([9.145, 38.7667], 13); // Addis Ababa
+  map.value = L.map('map-container').setView([9.145, 38.7667], 13); // Addis Ababa
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+  }).addTo(map.value);
+
+  markerLayer.value = L.layerGroup().addTo(map.value);
+
+  // Set up map click handler
+  map.value.on('click', (e) => {
+    newIncidentLocation.value = e.latlng;
+    showIncidentForm.value = true;
+  });
+
+  // Fetch incidents when the component mounts
+  incidentStore.fetchIncidents();
+});
+
+watchEffect(() => {
+  if (markerLayer.value) {
+    markerLayer.value.clearLayers();
+    incidentStore.incidents.forEach(incident => {
+      const marker = L.marker([incident.latitude, incident.longitude]);
+      marker.bindPopup(`<b>${incident.title}</b><br>${incident.description || ''}`);
+      markerLayer.value?.addLayer(marker);
+    });
+  }
 });
 </script>
 

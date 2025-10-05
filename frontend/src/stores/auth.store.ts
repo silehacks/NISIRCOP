@@ -26,9 +26,9 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(username: string, password: string) {
     try {
       const response = await AuthService.login(username, password)
-      const { jwt, ...userData } = response
+      const { jwt, ...userData } = response.data
       setAuthData(jwt, userData)
-      return response
+      return response.data
     } catch (error) {
       clearAuthData()
       throw error
