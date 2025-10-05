@@ -5,11 +5,19 @@ public class PointValidationRequest {
     private Long userId;
     private double latitude;
     private double longitude;
+    private String role; // optional: SUPER_USER, POLICE_STATION, OFFICER
 
     public PointValidationRequest(Long userId, double latitude, double longitude) {
         this.userId = userId;
         this.latitude = latitude;
         this.longitude = longitude;
+    }
+
+    public PointValidationRequest(Long userId, double latitude, double longitude, String role) {
+        this.userId = userId;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.role = role;
     }
 
     // Getters and Setters
@@ -35,5 +43,13 @@ public class PointValidationRequest {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

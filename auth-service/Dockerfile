@@ -2,16 +2,16 @@
 FROM eclipse-temurin:17-jdk-jammy AS build
 WORKDIR /app
 
-# Copy the Maven wrapper and the pom.xml
-COPY .mvn/ .mvn
-COPY mvnw pom.xml ./
+# Install Maven
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 
-# Download dependencies
-RUN ./mvnw dependency:go-offline
+# Copy the pom.xml and download dependencies
+COPY pom.xml ./
+RUN mvn dependency:go-offline
 
 # Copy the source code and build the application
 COPY src ./src
-RUN ./mvnw package -DskipTests
+RUN mvn package -DskipTests
 
 # Stage 2: Create the final image
 FROM eclipse-temurin:17-jre-jammy

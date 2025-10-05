@@ -2,6 +2,7 @@ package com.nisircop.le.incidentservice.service;
 
 import com.nisircop.le.incidentservice.client.GeoServiceClient;
 import com.nisircop.le.incidentservice.client.PointValidationRequest;
+import com.nisircop.le.incidentservice.client.UserServiceClient;
 import com.nisircop.le.incidentservice.model.Incident;
 import com.nisircop.le.incidentservice.repository.IncidentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class IncidentService {
     @Autowired
     private GeoServiceClient geoServiceClient;
 
+    @Autowired
+    private UserServiceClient userServiceClient;
+
     public List<Incident> getAllIncidents() {
         return incidentRepository.findAll();
     }
@@ -31,10 +35,20 @@ public class IncidentService {
 
     public Incident createIncident(Incident incident, Long reporterId) {
         // 1. Validate the location using the Geographic Service
+        // fetch reporter role from user-service
+        String reporterRole = "";
+        try {
+            var user = userServiceClient.getUserById(reporterId);
+            reporterRole = user != null ? user.getRole() : "";
+        } catch (Exception ignored) {
+            // If the user-service call fails, proceed with empty role which will be treated normally by geo service
+        }
+
         PointValidationRequest validationRequest = new PointValidationRequest(
                 reporterId,
                 incident.getLatitude(),
-                incident.getLongitude()
+                incident.getLongitude(),
+                reporterRole
         );
         ResponseEntity<Boolean> validationResponse = geoServiceClient.validatePointInBoundary(validationRequest);
 

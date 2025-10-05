@@ -32,6 +32,11 @@ public class GeoController {
 
         try {
             Point point = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
+            // If role is SUPER_USER, bypass boundary validation
+            if (request.getRole() != null && "SUPER_USER".equalsIgnoreCase(request.getRole())) {
+                return ResponseEntity.ok(true);
+            }
+
             boolean isValid = geoService.isPointInUserBoundary(request.getUserId(), point);
             return ResponseEntity.ok(isValid);
         } catch (Exception e) {

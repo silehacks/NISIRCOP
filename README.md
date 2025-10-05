@@ -292,6 +292,16 @@ API Documentation
 Swagger UI: Available at each service's /swagger-ui.html endpoint
 API Gateway: http://localhost:8080/swagger-ui.html
 Analytics API: http://localhost:8086/docs
+
+## SUPER_USER geographic behavior
+
+Design note: SUPER_USER accounts (regional/national administrators) are intentionally allowed to report incidents outside of station or officer boundaries. This is an explicit, audited design decision to allow administrators to create or record incidents at a higher level (for example mass incidents, regional reports, or administrative entries) without being blocked by local patrol/station boundaries.
+
+Important details:
+- Only SUPER_USER role bypasses the geographic point-in-polygon checks when reporting incidents. Regular POLICE_STATION and OFFICER roles are still validated against their assigned boundaries.
+- The bypass is implemented at the geographic validation layer and is logged at the service level; this is to preserve an auditable trail for administrative actions.
+- If you need a different policy (for example, allow station commanders to also bypass in certain conditions), update the geographic-service validation logic and add appropriate audit logging and tests.
+
 🚨 Troubleshooting
 Common Issues
 # Services not starting
