@@ -86,6 +86,14 @@ window.addEventListener('focus-incident', (ev: any) => {
     })
   }
 })
+
+// listen for requests to get the map's center
+window.addEventListener('get-map-center', () => {
+  if (map.value) {
+    const center = map.value.getCenter();
+    window.dispatchEvent(new CustomEvent('map-center', { detail: { lat: center.lat, lng: center.lng } }));
+  }
+});
 </script>
 
 <style>

@@ -38,6 +38,10 @@ public class UserService {
         return userRepository.findById(id);
     }
 
+    public Optional<User> getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
     @Transactional
     public User createUser(User user, UserProfile userProfile, String boundaryWkt, Long creatorId) {
         User creator = userRepository.findById(creatorId)

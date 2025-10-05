@@ -36,13 +36,11 @@ public class IncidentService {
     public Incident createIncident(Incident incident, Long reporterId) {
         // 1. Validate the location using the Geographic Service
         // fetch reporter role from user-service
-        String reporterRole = "";
-        try {
-            var user = userServiceClient.getUserById(reporterId);
-            reporterRole = user != null ? user.getRole() : "";
-        } catch (Exception ignored) {
-            // If the user-service call fails, proceed with empty role which will be treated normally by geo service
+        var user = userServiceClient.getUserById(reporterId);
+        if (user == null) {
+            throw new RuntimeException("User not found with id: " + reporterId);
         }
+        String reporterRole = user.getRole();
 
         PointValidationRequest validationRequest = new PointValidationRequest(
                 reporterId,
@@ -60,5 +58,21 @@ public class IncidentService {
         incident.setReportedBy(reporterId);
         incident.setOccurredAt(LocalDateTime.now()); // Or use a timestamp from the request
         return incidentRepository.save(incident);
+    }
+
+    public Optional<Incident> updateIncident(Long id, Incident incidentDetails) {
+        return incidentRepository.findById(id).map(incident -> {
+            incident.setTitle(incidentDetails.getTitle());
+            incident.setDescription(incidentDetails.getDescription());
+            incident.setIncidentType(incidentDetails.getIncidentType());
+            incident.setPriority(incidentDetails.getPriority());
+            incident.setLatitude(incidentDetails.getLatitude());
+            incident.setLongitude(incidentDetails.getLongitude());
+            return incidentRepository.save(incident);
+        });
+    }
+
+    public void deleteIncident(Long id) {
+        incidentRepository.deleteById(id);
     }
 }

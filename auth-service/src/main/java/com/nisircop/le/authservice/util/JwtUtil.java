@@ -4,7 +4,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import com.nisircop.le.authservice.model.User;
+import com.nisircop.le.authservice.dto.UserDTO;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -21,7 +21,7 @@ public class JwtUtil {
     @Value("${jwt.expiration.ms}")
     private long expirationMs;
 
-    public String generateToken(User user) {
+    public String generateToken(UserDTO user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getId());
         claims.put("role", user.getRole());

@@ -1,22 +1,12 @@
-package com.nisircop.le.authservice.model;
+package com.nisircop.le.authservice.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "users") // Matches the table name in the main schema
-public class User {
-
-    @Id
+public class UserDTO {
     private Long id;
     private String username;
     private String password;
     private String role;
-    private boolean isActive;
 
     // Getters and Setters
-
     public Long getId() {
         return id;
     }
@@ -47,13 +37,5 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setActive(boolean active) {
-        isActive = active;
     }
 }

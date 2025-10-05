@@ -46,4 +46,25 @@ public class IncidentController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Incident> updateIncident(@PathVariable Long id, @RequestBody IncidentCreateRequest request) {
+        Incident incidentDetails = new Incident();
+        incidentDetails.setTitle(request.getTitle());
+        incidentDetails.setDescription(request.getDescription());
+        incidentDetails.setIncidentType(request.getIncidentType());
+        incidentDetails.setPriority(request.getPriority());
+        incidentDetails.setLatitude(request.getLatitude());
+        incidentDetails.setLongitude(request.getLongitude());
+
+        return incidentService.updateIncident(id, incidentDetails)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteIncident(@PathVariable Long id) {
+        incidentService.deleteIncident(id);
+        return ResponseEntity.noContent().build();
+    }
 }
