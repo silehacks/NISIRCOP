@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import * as IncidentService from '../services/incident.service';
+import type { Incident } from '../models/incident.model';
 
 export const useIncidentStore = defineStore('incident', () => {
-  const incidents = ref([]);
+  const incidents = ref<Incident[]>([]);
   const isLoading = ref(false);
 
   async function fetchIncidents() {
@@ -19,11 +20,10 @@ export const useIncidentStore = defineStore('incident', () => {
     }
   }
 
-  async function addIncident(incidentData) {
+  async function addIncident(incidentData: Omit<Incident, 'id' | 'reportedBy' | 'occurredAt'>) {
     isLoading.value = true;
     try {
       const response = await IncidentService.createIncident(incidentData);
-      // Add the new incident to the local state
       incidents.value.push(response.data);
     } catch (error) {
       console.error('Failed to create incident:', error);
@@ -33,11 +33,15 @@ export const useIncidentStore = defineStore('incident', () => {
     }
   }
 
-  async function updateIncident(id, incidentData) {
+  async function updateIncident(incidentData: Incident) {
+    if (!incidentData.id) {
+      console.error("Update operation called without an incident ID.");
+      return;
+    }
     isLoading.value = true;
     try {
-      const response = await IncidentService.updateIncident(id, incidentData);
-      const index = incidents.value.findIndex(i => i.id === id);
+      const response = await IncidentService.updateIncident(incidentData.id, incidentData);
+      const index = incidents.value.findIndex(i => i.id === incidentData.id);
       if (index !== -1) {
         incidents.value[index] = response.data;
       }
@@ -49,7 +53,7 @@ export const useIncidentStore = defineStore('incident', () => {
     }
   }
 
-  async function deleteIncident(id) {
+  async function deleteIncident(id: number) {
     isLoading.value = true;
     try {
       await IncidentService.deleteIncident(id);

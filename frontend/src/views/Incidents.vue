@@ -50,16 +50,27 @@
         <p>No incidents found.</p>
       </div>
     </div>
+    <IncidentEditModal
+      :show="showEditModal"
+      :incident="selectedIncident"
+      @close="showEditModal = false"
+      @save="saveIncident"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useIncidentStore } from '../stores/incident.store';
 import { useAuthStore } from '../stores/auth.store';
+import IncidentEditModal from '../components/IncidentEditModal.vue';
+import type { Incident } from '../models/incident.model';
 
 const incidentStore = useIncidentStore();
 const authStore = useAuthStore();
+
+const showEditModal = ref(false);
+const selectedIncident = ref<Incident | null>(null);
 
 const refresh = async () => {
   await incidentStore.fetchIncidents();
@@ -71,7 +82,7 @@ onMounted(() => {
   }
 });
 
-const focusIncident = (incident: any) => {
+const focusIncident = (incident: Incident) => {
   if (!incident) return;
   const lat = incident.latitude;
   const lng = incident.longitude;
@@ -80,11 +91,20 @@ const focusIncident = (incident: any) => {
   }
 };
 
-const editIncident = (incident: any) => {
-  // This would typically open a modal or navigate to an edit page.
-  // For now, we'll just log it.
-  console.log('Editing incident:', incident);
-  alert('Edit functionality is not yet fully implemented.');
+const editIncident = (incident: Incident) => {
+  selectedIncident.value = incident;
+  showEditModal.value = true;
+};
+
+const saveIncident = async (updatedIncident: Incident) => {
+  if (!updatedIncident || !updatedIncident.id) return;
+  try {
+    await incidentStore.updateIncident(updatedIncident);
+    showEditModal.value = false;
+  } catch (error) {
+    console.error('Failed to update incident:', error);
+    alert('Failed to update incident.');
+  }
 };
 
 const deleteIncident = async (id: number) => {
@@ -98,7 +118,7 @@ const deleteIncident = async (id: number) => {
   }
 };
 
-const canEditDelete = (incident: any) => {
+const canEditDelete = (incident: Incident) => {
   if (!authStore.user) return false;
   const userRole = authStore.user.role;
   const userId = authStore.user.id;
