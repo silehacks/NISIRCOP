@@ -9,7 +9,7 @@
 
     <!-- Search and Filter Controls -->
     <div class="mb-6 bg-[#052659] p-4 rounded-lg">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label for="search" class="block text-sm font-medium text-[#7DA0CA] mb-2">Search</label>
           <input
@@ -33,20 +33,6 @@
             <option value="Low">Low</option>
           </select>
         </div>
-        <div>
-          <label for="statusFilter" class="block text-sm font-medium text-[#7DA0CA] mb-2">Status</label>
-          <select
-            v-model="statusFilter"
-            id="statusFilter"
-            class="w-full px-4 py-2 bg-[#5483B3] bg-opacity-30 border border-[#5483B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7DA0CA]"
-          >
-            <option value="">All Statuses</option>
-            <option value="Open">Open</option>
-            <option value="InProgress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Closed">Closed</option>
-          </select>
-        </div>
       </div>
     </div>
 
@@ -61,7 +47,6 @@
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Title</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Type</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Priority</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Reported At</th>
             <th scope="col" class="relative px-6 py-3">
               <span class="sr-only">Actions</span>
@@ -80,7 +65,6 @@
                 {{ incident.priority || '-' }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ incident.status || 'Open' }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm">{{ new Date(incident.occurredAt).toLocaleString() }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <button @click="focusIncident(incident)" class="text-[#7DA0CA] hover:text-white mr-4">View on Map</button>
@@ -120,7 +104,6 @@ const showEditModal = ref(false);
 const selectedIncident = ref<Incident | null>(null);
 const searchQuery = ref('');
 const priorityFilter = ref('');
-const statusFilter = ref('');
 
 const filteredIncidents = computed(() => {
   let filtered = incidentStore.incidents;
@@ -138,11 +121,6 @@ const filteredIncidents = computed(() => {
   // Priority filter
   if (priorityFilter.value) {
     filtered = filtered.filter(incident => incident.priority === priorityFilter.value);
-  }
-
-  // Status filter
-  if (statusFilter.value) {
-    filtered = filtered.filter(incident => incident.status === statusFilter.value);
   }
 
   return filtered;

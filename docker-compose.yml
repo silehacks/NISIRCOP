@@ -23,6 +23,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - ./data:/app/data
     depends_on:
       discovery-server:
         condition: service_started
@@ -33,6 +35,8 @@ services:
       - "8085:8085"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./data:/app/data
     depends_on:
       discovery-server:
         condition: service_started
@@ -43,6 +47,8 @@ services:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./data:/app/data
     depends_on:
       discovery-server:
         condition: service_started
@@ -53,6 +59,8 @@ services:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    volumes:
+      - ./data:/app/data
     depends_on:
       discovery-server:
         condition: service_started
