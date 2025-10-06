@@ -10,9 +10,6 @@ import com.nisircop.le.userservice.model.UserRole;
 import com.nisircop.le.userservice.repository.UserProfileRepository;
 import com.nisircop.le.userservice.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +25,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final PasswordEncoder passwordEncoder;
-    private final WKTReader wktReader = new WKTReader();
 
     public List<UserResponseDto> getAllUsers() {
         return userRepository.findAll().stream()
@@ -60,18 +56,8 @@ public class UserService {
         userProfile.setPhone(request.getPhone());
         userProfile.setBadgeNumber(request.getBadgeNumber());
 
-        Geometry boundary = parseBoundary(request.getBoundary());
-
-        // If an OFFICER is created, inherit the boundary from the creator (POLICE_STATION)
-        if (user.getRole() == UserRole.OFFICER) {
-            UserProfile creatorProfile = userProfileRepository.findByUser_Id(creatorId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Creator's profile not found, cannot assign boundary."));
-            boundary = creatorProfile.getBoundary();
-        }
-        userProfile.setBoundary(boundary);
-
-        // Set the bidirectional relationship
         user.setUserProfile(userProfile);
+        userProfile.setUser(user);
 
         User savedUser = userRepository.save(user);
         return mapToUserResponseDto(savedUser);
@@ -95,7 +81,6 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         
-        // Check if updater has permission to update this user
         validateUserUpdatePermission(updaterId, user);
         
         user.setUsername(request.getUsername());
@@ -122,7 +107,6 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         
-        // Check if deleter has permission to delete this user
         validateUserDeletePermission(deleterId, user);
         
         userRepository.deleteById(id);
@@ -133,21 +117,17 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Updater not found with id: " + updaterId));
         
         String updaterRole = updater.getRole().name();
-        String targetRole = targetUser.getRole().name();
         
-        // SUPER_USER can update anyone
         if ("SUPER_USER".equals(updaterRole)) {
             return;
         }
         
-        // POLICE_STATION can update their own officers
         if ("POLICE_STATION".equals(updaterRole) && 
             targetUser.getCreatedBy() != null && 
             targetUser.getCreatedBy().equals(updaterId)) {
             return;
         }
         
-        // Users can update themselves
         if (updaterId.equals(targetUser.getId())) {
             return;
         }
@@ -161,12 +141,10 @@ public class UserService {
         
         String deleterRole = deleter.getRole().name();
         
-        // SUPER_USER can delete anyone
         if ("SUPER_USER".equals(deleterRole)) {
             return;
         }
         
-        // POLICE_STATION can delete their own officers
         if ("POLICE_STATION".equals(deleterRole) && 
             targetUser.getCreatedBy() != null && 
             targetUser.getCreatedBy().equals(deleterId)) {
@@ -192,17 +170,5 @@ public class UserService {
             dto.setBadgeNumber(user.getUserProfile().getBadgeNumber());
         }
         return dto;
-    }
-
-    private Geometry parseBoundary(String boundaryWkt) {
-        if (boundaryWkt == null || boundaryWkt.isEmpty()) {
-            return null;
-        }
-        try {
-            return wktReader.read(boundaryWkt);
-        } catch (ParseException e) {
-            // This should be handled by a more specific exception
-            throw new IllegalArgumentException("Invalid boundary WKT format", e);
-        }
     }
 }

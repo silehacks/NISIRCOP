@@ -46,6 +46,7 @@
         </div>
         <div class="flex items-center">
           <button
+            v-if="canReportIncident"
             @click="uiStore.openReportIncidentModal()"
             class="px-4 py-2 text-sm font-medium text-white bg-[#5483B3] rounded-md hover:bg-[#7DA0CA] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7DA0CA] transition-colors"
           >
@@ -140,6 +141,11 @@ const isNavAllowed = (navItem: typeof navigation[0]) => {
   if (!authStore.user?.role) return false;
   return navItem.allowedRoles.includes(authStore.user.role);
 };
+
+const canReportIncident = computed(() => {
+  if (!authStore.user?.role) return false;
+  return ['SUPER_USER', 'OFFICER'].includes(authStore.user.role);
+});
 
 </script>
 

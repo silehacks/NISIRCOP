@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useAuthStore } from '../stores/auth.store';
 
 const apiClient = axios.create({
-  baseURL: '/api', // This will be proxied by Vite to the backend
+  baseURL: '/api/v1', // Updated to match the backend's base path
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,9 +12,17 @@ apiClient.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore();
     const token = authStore.token;
+    const user = authStore.user;
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (user) {
+      config.headers['X-User-Id'] = user.id;
+      config.headers['X-User-Role'] = user.role;
+    }
+
     return config;
   },
   (error) => {

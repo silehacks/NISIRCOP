@@ -1,0 +1,7 @@
+/app/geographic-service/src/main/java/com/nisircop/le/geographicservice/service/GeoService.java
+/app/geographic-service/src/main/java/com/nisircop/le/geographicservice/model/User.java
+/app/geographic-service/src/main/java/com/nisircop/le/geographicservice/repository/UserProfileRepository.java
+/app/geographic-service/src/main/java/com/nisircop/le/geographicservice/GeographicServiceApplication.java
+/app/geographic-service/src/main/java/com/nisircop/le/geographicservice/controller/GeoController.java
+/app/geographic-service/src/main/java/com/nisircop/le/geographicservice/dto/PointValidationRequest.java
+/app/geographic-service/src/main/java/com/nisircop/le/geographicservice/model/UserProfile.java

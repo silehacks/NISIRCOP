@@ -77,7 +77,6 @@ public class IncidentService {
             incident.setDescription(incidentDetails.getDescription());
             incident.setIncidentType(incidentDetails.getIncidentType());
             incident.setPriority(incidentDetails.getPriority());
-            incident.setStatus(incidentDetails.getStatus());
             incident.setLatitude(incidentDetails.getLatitude());
             incident.setLongitude(incidentDetails.getLongitude());
             return incidentRepository.save(incident);
