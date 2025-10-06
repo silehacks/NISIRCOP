@@ -8,9 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/incidents")
+@RequestMapping("/api/v1/incidents")
 public class IncidentController {
 
     @Autowired
@@ -29,42 +30,33 @@ public class IncidentController {
     }
 
     @PostMapping
-    public ResponseEntity<Incident> createIncident(@RequestBody IncidentCreateRequest request, @RequestHeader("X-User-Id") Long reporterId) {
-        Incident incident = new Incident();
-        incident.setTitle(request.getTitle());
-        incident.setDescription(request.getDescription());
-        incident.setIncidentType(request.getIncidentType());
-        incident.setPriority(request.getPriority());
-        incident.setLatitude(request.getLatitude());
-        incident.setLongitude(request.getLongitude());
-
+    public ResponseEntity<Incident> createIncident(@RequestBody IncidentCreateRequest request,
+                                                   @RequestHeader("X-User-Id") Long reporterId,
+                                                   @RequestHeader("X-User-Role") String reporterRole) {
         try {
-            Incident createdIncident = incidentService.createIncident(incident, reporterId);
+            Incident createdIncident = incidentService.createIncident(request, reporterId, reporterRole);
             return ResponseEntity.ok(createdIncident);
         } catch (RuntimeException e) {
-            // In a real app, you'd have more specific exception handling
             return ResponseEntity.badRequest().body(null);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Incident> updateIncident(@PathVariable Long id, @RequestBody IncidentCreateRequest request, @RequestHeader("X-User-Id") Long userId) {
-        Incident incidentDetails = new Incident();
-        incidentDetails.setTitle(request.getTitle());
-        incidentDetails.setDescription(request.getDescription());
-        incidentDetails.setIncidentType(request.getIncidentType());
-        incidentDetails.setPriority(request.getPriority());
-        incidentDetails.setLatitude(request.getLatitude());
-        incidentDetails.setLongitude(request.getLongitude());
-
-        return incidentService.updateIncident(id, incidentDetails, userId)
+    public ResponseEntity<Incident> updateIncident(@PathVariable Long id,
+                                                   @RequestBody IncidentCreateRequest request,
+                                                   @RequestHeader("X-User-Id") Long userId) {
+        return incidentService.updateIncident(id, request, userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteIncident(@PathVariable Long id, @RequestHeader("X-User-Id") Long userId) {
-        incidentService.deleteIncident(id, userId);
-        return ResponseEntity.noContent().build();
+        try {
+            incidentService.deleteIncident(id, userId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
