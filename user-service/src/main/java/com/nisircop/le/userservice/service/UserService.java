@@ -90,6 +90,92 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public UserResponseDto updateUser(Long id, UserCreateRequest request, Long updaterId) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        
+        // Check if updater has permission to update this user
+        validateUserUpdatePermission(updaterId, user);
+        
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setRole(UserRole.valueOf(request.getRole().toUpperCase()));
+        
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+        
+        if (user.getUserProfile() != null) {
+            user.getUserProfile().setFirstName(request.getFirstName());
+            user.getUserProfile().setLastName(request.getLastName());
+            user.getUserProfile().setPhone(request.getPhone());
+            user.getUserProfile().setBadgeNumber(request.getBadgeNumber());
+        }
+        
+        User savedUser = userRepository.save(user);
+        return mapToUserResponseDto(savedUser);
+    }
+
+    @Transactional
+    public void deleteUser(Long id, Long deleterId) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        
+        // Check if deleter has permission to delete this user
+        validateUserDeletePermission(deleterId, user);
+        
+        userRepository.deleteById(id);
+    }
+
+    private void validateUserUpdatePermission(Long updaterId, User targetUser) {
+        User updater = userRepository.findById(updaterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Updater not found with id: " + updaterId));
+        
+        String updaterRole = updater.getRole().name();
+        String targetRole = targetUser.getRole().name();
+        
+        // SUPER_USER can update anyone
+        if ("SUPER_USER".equals(updaterRole)) {
+            return;
+        }
+        
+        // POLICE_STATION can update their own officers
+        if ("POLICE_STATION".equals(updaterRole) && 
+            targetUser.getCreatedBy() != null && 
+            targetUser.getCreatedBy().equals(updaterId)) {
+            return;
+        }
+        
+        // Users can update themselves
+        if (updaterId.equals(targetUser.getId())) {
+            return;
+        }
+        
+        throw new RuntimeException("User does not have permission to update this user.");
+    }
+
+    private void validateUserDeletePermission(Long deleterId, User targetUser) {
+        User deleter = userRepository.findById(deleterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Deleter not found with id: " + deleterId));
+        
+        String deleterRole = deleter.getRole().name();
+        
+        // SUPER_USER can delete anyone
+        if ("SUPER_USER".equals(deleterRole)) {
+            return;
+        }
+        
+        // POLICE_STATION can delete their own officers
+        if ("POLICE_STATION".equals(deleterRole) && 
+            targetUser.getCreatedBy() != null && 
+            targetUser.getCreatedBy().equals(deleterId)) {
+            return;
+        }
+        
+        throw new RuntimeException("User does not have permission to delete this user.");
+    }
+
     private UserResponseDto mapToUserResponseDto(User user) {
         UserResponseDto dto = new UserResponseDto();
         dto.setId(user.getId());

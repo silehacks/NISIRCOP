@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
 import { useIncidentStore } from '../stores/incident.store';
 
 const props = defineProps<{

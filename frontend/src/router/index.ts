@@ -26,7 +26,7 @@ const routes = [
         path: 'users',
         name: 'Users',
         component: Users,
-        meta: { requiresRole: 'SUPER_USER' },
+        meta: { requiresRole: ['SUPER_USER', 'POLICE_STATION'] },
       },
     ],
   },
@@ -49,10 +49,19 @@ router.beforeEach((to, _from, next) => {
     next('/login')
   } else if (to.name === 'Login' && isAuthenticated) {
     next('/')
-  } else if (to.meta.requiresRole && to.meta.requiresRole !== authStore.user?.role) {
-    // If the route requires a specific role and the user does not have it,
-    // redirect to the dashboard.
-    next({ name: 'Dashboard' })
+  } else if (to.meta.requiresRole) {
+    const userRole = authStore.user?.role
+    const requiredRoles = Array.isArray(to.meta.requiresRole) 
+      ? to.meta.requiresRole 
+      : [to.meta.requiresRole]
+    
+    if (!userRole || !requiredRoles.includes(userRole)) {
+      // If the route requires a specific role and the user does not have it,
+      // redirect to the dashboard.
+      next({ name: 'Dashboard' })
+    } else {
+      next()
+    }
   } else {
     next()
   }

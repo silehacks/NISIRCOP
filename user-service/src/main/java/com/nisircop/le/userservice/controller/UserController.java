@@ -57,4 +57,19 @@ public class UserController {
     public List<Long> getOfficerIdsByStation(@PathVariable Long stationId) {
         return userService.getOfficerIdsByStation(stationId);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDto> updateUser(@PathVariable Long id, 
+                                                    @Valid @RequestBody UserCreateRequest request,
+                                                    @RequestHeader("X-User-Id") Long updaterId) {
+        UserResponseDto updatedUser = userService.updateUser(id, request, updaterId);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id, 
+                                         @RequestHeader("X-User-Id") Long deleterId) {
+        userService.deleteUser(id, deleterId);
+        return ResponseEntity.noContent().build();
+    }
 }
