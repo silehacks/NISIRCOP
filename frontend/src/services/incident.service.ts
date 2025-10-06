@@ -1,21 +1,22 @@
 import apiClient from './apiClient';
+import type { Incident } from '../models/incident.model';
 
 export const getIncidents = () => {
-  return apiClient.get('/incidents');
+  return apiClient.get<Incident[]>('/incidents');
 };
 
-export const createIncident = (incidentData) => {
-  return apiClient.post('/incidents', incidentData);
+export const createIncident = (incidentData: Omit<Incident, 'id' | 'reportedBy' | 'occurredAt'>) => {
+  return apiClient.post<Incident>('/incidents', incidentData);
 };
 
-export const getIncidentById = (id) => {
-  return apiClient.get(`/incidents/${id}`);
+export const getIncidentById = (id: number) => {
+  return apiClient.get<Incident>(`/incidents/${id}`);
 };
 
-export const updateIncident = (id, incidentData) => {
-  return apiClient.put(`/incidents/${id}`, incidentData);
+export const updateIncident = (id: number, incidentData: Partial<Incident>) => {
+  return apiClient.put<Incident>(`/incidents/${id}`, incidentData);
 };
 
-export const deleteIncident = (id) => {
+export const deleteIncident = (id: number) => {
   return apiClient.delete(`/incidents/${id}`);
 };

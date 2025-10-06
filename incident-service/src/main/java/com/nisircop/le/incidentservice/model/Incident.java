@@ -22,6 +22,8 @@ public class Incident {
     @Column(nullable = false)
     private String priority;
 
+    private String status = "Open";
+
     @Column(nullable = false)
     private double latitude;
 
@@ -73,6 +75,14 @@ public class Incident {
 
     public void setPriority(String priority) {
         this.priority = priority;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public double getLatitude() {
