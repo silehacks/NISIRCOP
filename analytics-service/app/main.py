@@ -39,6 +39,11 @@ def get_incident_count_by_priority(db: Session = Depends(get_db)):
     return crud.get_incident_count_by_priority(db)
 
 
+@app.get("/analytics/incidents/locations", response_model=list[schemas.IncidentLocation])
+def get_incident_locations(db: Session = Depends(get_db)):
+    return crud.get_all_incident_locations(db)
+
+
 @app.on_event("startup")
 def register_with_eureka():
     """Register this service with a Eureka server if configured via EUREKA_SERVER_URL env var."""

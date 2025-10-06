@@ -17,8 +17,8 @@ public class IncidentController {
     private IncidentService incidentService;
 
     @GetMapping
-    public List<Incident> getAllIncidents() {
-        return incidentService.getAllIncidents();
+    public List<Incident> getAllIncidents(@RequestHeader("X-User-Id") Long userId, @RequestHeader("X-User-Role") String userRole) {
+        return incidentService.getAllIncidents(userId, userRole);
     }
 
     @GetMapping("/{id}")
@@ -48,7 +48,7 @@ public class IncidentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Incident> updateIncident(@PathVariable Long id, @RequestBody IncidentCreateRequest request) {
+    public ResponseEntity<Incident> updateIncident(@PathVariable Long id, @RequestBody IncidentCreateRequest request, @RequestHeader("X-User-Id") Long userId) {
         Incident incidentDetails = new Incident();
         incidentDetails.setTitle(request.getTitle());
         incidentDetails.setDescription(request.getDescription());
@@ -57,14 +57,14 @@ public class IncidentController {
         incidentDetails.setLatitude(request.getLatitude());
         incidentDetails.setLongitude(request.getLongitude());
 
-        return incidentService.updateIncident(id, incidentDetails)
+        return incidentService.updateIncident(id, incidentDetails, userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteIncident(@PathVariable Long id) {
-        incidentService.deleteIncident(id);
+    public ResponseEntity<Void> deleteIncident(@PathVariable Long id, @RequestHeader("X-User-Id") Long userId) {
+        incidentService.deleteIncident(id, userId);
         return ResponseEntity.noContent().build();
     }
 }

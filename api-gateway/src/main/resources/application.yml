@@ -8,8 +8,29 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
+          enabled: false # Disable automatic routing based on service ID
           lower-case-service-id: true
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+        - id: incident-service
+          uri: lb://incident-service
+          predicates:
+            - Path=/incidents/**
+        - id: geographic-service
+          uri: lb://geographic-service
+          predicates:
+            - Path=/geo/**
+        - id: analytics-service
+          uri: lb://analytics-service
+          predicates:
+            - Path=/analytics/**
 
 eureka:
   client:

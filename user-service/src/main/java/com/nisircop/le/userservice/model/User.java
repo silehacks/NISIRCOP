@@ -1,5 +1,6 @@
 package com.nisircop.le.userservice.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -23,9 +24,12 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_id")
-    private User parent;
+    @Column(name = "created_by")
+    private Long createdBy;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private UserProfile userProfile;
 
     private boolean isActive = true;
 
@@ -70,12 +74,20 @@ public class User {
         this.role = role;
     }
 
-    public User getParent() {
-        return parent;
+    public Long getCreatedBy() {
+        return createdBy;
     }
 
-    public void setParent(User parent) {
-        this.parent = parent;
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public UserProfile getUserProfile() {
+        return userProfile;
+    }
+
+    public void setUserProfile(UserProfile userProfile) {
+        this.userProfile = userProfile;
     }
 
     public boolean isActive() {

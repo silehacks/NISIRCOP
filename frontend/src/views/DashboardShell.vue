@@ -41,7 +41,7 @@
         </div>
         <div class="flex items-center">
           <button
-            @click="openReportModalWithCurrentCenter"
+            @click="uiStore.openReportIncidentModal()"
             class="px-4 py-2 text-sm font-medium text-white bg-[#5483B3] rounded-md hover:bg-[#7DA0CA] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7DA0CA] transition-colors"
           >
             Report Incident
@@ -58,17 +58,18 @@
     <!-- Report Incident Modal -->
     <ReportIncidentModal
       :is-open="isReportModalOpen"
-      :latitude="clickedLat"
-      :longitude="clickedLng"
-      @close="closeReportModal"
+      :latitude="modalLatitude"
+      :longitude="modalLongitude"
+      @close="uiStore.closeReportIncidentModal"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useAuthStore } from '../stores/auth.store'
+import { useUiStore } from '../stores/ui.store'
 import { useRouter } from 'vue-router'
-import { ref, onMounted, onUnmounted, shallowRef } from 'vue'
+import { shallowRef, computed } from 'vue'
 import ReportIncidentModal from '../components/ReportIncidentModal.vue'
 
 // Icons
@@ -78,38 +79,19 @@ const ChartBarIcon = shallowRef({ template: `<svg xmlns="http://www.w3.org/2000/
 const UsersIcon = shallowRef({ template: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197" /></svg>`})
 
 const authStore = useAuthStore()
+const uiStore = useUiStore()
 const router = useRouter()
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, allowedRoles: ['SUPER_USER', 'POLICE_STATION', 'OFFICER'] },
   { name: 'Incidents', href: '/incidents', icon: DocumentReportIcon, allowedRoles: ['SUPER_USER', 'POLICE_STATION', 'OFFICER'] },
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon, allowedRoles: ['SUPER_USER', 'POLICE_STATION', 'OFFICER'] },
-  { name: 'Users', href: '/users', icon: UsersIcon, allowedRoles: ['SUPER_USER', 'POLICE_STATION'] },
+  { name: 'Users', href: '/users', icon: UsersIcon, allowedRoles: ['SUPER_USER'] },
 ]
 
-const isReportModalOpen = ref(false)
-const clickedLat = ref<number | null>(null)
-const clickedLng = ref<number | null>(null)
-
-const openReportModal = (lat: number, lng: number) => {
-  clickedLat.value = lat
-  clickedLng.value = lng
-  isReportModalOpen.value = true
-}
-
-const openReportModalWithCurrentCenter = () => {
-  // A bit of a hack: we ask the map for its center
-  window.dispatchEvent(new CustomEvent('get-map-center'));
-}
-
-const closeReportModal = () => {
-  isReportModalOpen.value = false
-}
-
-const handleMapClick = (event: any) => {
-  const { lat, lng } = event.detail
-  openReportModal(lat, lng)
-}
+const isReportModalOpen = computed(() => uiStore.reportIncidentModal.isOpen);
+const modalLatitude = computed(() => uiStore.reportIncidentModal.lat);
+const modalLongitude = computed(() => uiStore.reportIncidentModal.lng);
 
 const handleLogout = () => {
   authStore.logout()
@@ -121,15 +103,6 @@ const isNavAllowed = (navItem: typeof navigation[0]) => {
   return navItem.allowedRoles.includes(authStore.user.role);
 };
 
-onMounted(() => {
-  window.addEventListener('map-click', handleMapClick)
-  window.addEventListener('map-center', (e: any) => openReportModal(e.detail.lat, e.detail.lng));
-})
-
-onUnmounted(() => {
-  window.removeEventListener('map-click', handleMapClick)
-  window.removeEventListener('map-center', (e: any) => openReportModal(e.detail.lat, e.detail.lng));
-})
 </script>
 
 <style scoped>

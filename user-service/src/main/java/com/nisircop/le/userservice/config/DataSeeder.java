@@ -34,7 +34,7 @@ public class DataSeeder implements CommandLineRunner {
         superUser.setEmail("admin@nisircop.le");
         superUser.setRole(UserRole.SUPER_USER);
         superUser.setActive(true);
-        userRepository.save(superUser);
+        User savedSuperUser = userRepository.save(superUser);
 
         // Create POLICE_STATION
         User policeStation = new User();
@@ -43,8 +43,8 @@ public class DataSeeder implements CommandLineRunner {
         policeStation.setEmail("station@nisircop.le");
         policeStation.setRole(UserRole.POLICE_STATION);
         policeStation.setActive(true);
-        policeStation.setParent(superUser);
-        userRepository.save(policeStation);
+        policeStation.setCreatedBy(savedSuperUser.getId());
+        User savedPoliceStation = userRepository.save(policeStation);
 
         // Create OFFICER
         User officer = new User();
@@ -53,7 +53,7 @@ public class DataSeeder implements CommandLineRunner {
         officer.setEmail("officer001@nisircop.le");
         officer.setRole(UserRole.OFFICER);
         officer.setActive(true);
-        officer.setParent(policeStation);
+        officer.setCreatedBy(savedPoliceStation.getId());
         userRepository.save(officer);
     }
 }

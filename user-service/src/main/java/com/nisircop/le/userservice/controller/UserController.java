@@ -1,10 +1,14 @@
 package com.nisircop.le.userservice.controller;
 
 import com.nisircop.le.userservice.dto.UserCreateRequest;
+import com.nisircop.le.userservice.dto.ValidateRequest;
 import com.nisircop.le.userservice.model.User;
 import com.nisircop.le.userservice.model.UserProfile;
 import com.nisircop.le.userservice.model.UserRole;
 import com.nisircop.le.userservice.service.UserService;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +21,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    private final WKTReader wktReader = new WKTReader();
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -37,6 +43,13 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PostMapping("/validate")
+    public ResponseEntity<User> validateUser(@RequestBody ValidateRequest request) {
+        return userService.validateUser(request)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(401).build());
+    }
+
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody UserCreateRequest request, @RequestHeader("X-User-Id") Long creatorId) {
         User user = new User();
@@ -51,7 +64,21 @@ public class UserController {
         userProfile.setPhone(request.getPhone());
         userProfile.setBadgeNumber(request.getBadgeNumber());
 
-        User createdUser = userService.createUser(user, userProfile, request.getBoundary(), creatorId);
+        Geometry boundary = null;
+        if (request.getBoundary() != null && !request.getBoundary().isEmpty()) {
+            try {
+                boundary = wktReader.read(request.getBoundary());
+            } catch (ParseException e) {
+                return ResponseEntity.badRequest().body(null); // Or handle more gracefully
+            }
+        }
+
+        User createdUser = userService.createUser(user, userProfile, boundary, creatorId);
         return ResponseEntity.ok(createdUser);
+    }
+
+    @GetMapping("/station/{stationId}/officers")
+    public List<Long> getOfficerIdsByStation(@PathVariable Long stationId) {
+        return userService.getOfficerIdsByStation(stationId);
     }
 }

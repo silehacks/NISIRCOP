@@ -11,3 +11,11 @@ export const createUser = (userData: Record<string, any>) => {
 export const getUserById = (id: number | string) => {
   return apiClient.get(`/users/${id}`);
 }
+
+export const updateUser = (id: number, userData: Record<string, any>) => {
+  return apiClient.put(`/users/${id}`, userData);
+};
+
+export const deleteUser = (id: number) => {
+  return apiClient.delete(`/users/${id}`);
+};

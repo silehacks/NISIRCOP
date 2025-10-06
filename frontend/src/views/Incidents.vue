@@ -81,16 +81,28 @@ const focusIncident = (incident: any) => {
 };
 
 const editIncident = (incident: any) => {
-  // Logic for editing incident
+  // This would typically open a modal or navigate to an edit page.
+  // For now, we'll just log it.
+  console.log('Editing incident:', incident);
+  alert('Edit functionality is not yet fully implemented.');
 };
 
-const deleteIncident = (id: number) => {
-  // Logic for deleting incident
+const deleteIncident = async (id: number) => {
+  if (confirm('Are you sure you want to delete this incident?')) {
+    try {
+      await incidentStore.deleteIncident(id);
+    } catch (error) {
+      console.error('Failed to delete incident:', error);
+      alert('Failed to delete incident.');
+    }
+  }
 };
 
 const canEditDelete = (incident: any) => {
-  const userRole = authStore.user?.role;
-  return userRole === 'SUPER_USER' || userRole === 'POLICE_STATION';
+  if (!authStore.user) return false;
+  const userRole = authStore.user.role;
+  const userId = authStore.user.id;
+  return userRole === 'SUPER_USER' || incident.reportedBy === userId;
 };
 
 const getPriorityClass = (priority: string) => {

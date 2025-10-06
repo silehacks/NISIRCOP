@@ -1,13 +1,12 @@
 package com.nisircop.le.userservice.service;
 
+import com.nisircop.le.userservice.dto.ValidateRequest;
 import com.nisircop.le.userservice.model.User;
 import com.nisircop.le.userservice.model.UserProfile;
 import com.nisircop.le.userservice.model.UserRole;
 import com.nisircop.le.userservice.repository.UserProfileRepository;
 import com.nisircop.le.userservice.repository.UserRepository;
-import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -27,8 +27,6 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    private final WKTReader wktReader = new WKTReader();
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -43,43 +41,34 @@ public class UserService {
     }
 
     @Transactional
-    public User createUser(User user, UserProfile userProfile, String boundaryWkt, Long creatorId) {
-        User creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new RuntimeException("Creator not found"));
-
-        validateUserCreation(creator, user.getRole());
-
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setParent(creator);
-        User savedUser = userRepository.save(user);
-
-        if (boundaryWkt != null && !boundaryWkt.isEmpty()) {
-            try {
-                Polygon boundary = (Polygon) wktReader.read(boundaryWkt);
-                userProfile.setBoundary(boundary);
-            } catch (ParseException e) {
-                throw new RuntimeException("Invalid WKT format for boundary", e);
-            }
+    public User createUser(User user, UserProfile userProfile, Geometry boundary, Long creatorId) {
+        if (user.getRole() == UserRole.OFFICER) {
+            UserProfile creatorProfile = userProfileRepository.findByUser_Id(creatorId)
+                    .orElseThrow(() -> new RuntimeException("Creator's profile not found, cannot assign boundary."));
+            boundary = creatorProfile.getBoundary();
         }
 
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setCreatedBy(creatorId);
+        User savedUser = userRepository.save(user);
+
         userProfile.setUser(savedUser);
+        userProfile.setBoundary(boundary);
         userProfileRepository.save(userProfile);
 
+        savedUser.setUserProfile(userProfile);
         return savedUser;
     }
 
-    private void validateUserCreation(User creator, UserRole roleToCreate) {
-        UserRole creatorRole = creator.getRole();
-        boolean isAllowed = switch (creatorRole) {
-            case SUPER_USER -> roleToCreate == UserRole.POLICE_STATION;
-            case POLICE_STATION -> roleToCreate == UserRole.OFFICER;
-            default -> false;
-        };
-        if (!isAllowed) {
-            throw new RuntimeException("User with role " + creatorRole + " cannot create user with role " + roleToCreate);
-        }
+    public Optional<User> validateUser(ValidateRequest request) {
+        return userRepository.findByUsername(request.getUsername())
+                .filter(user -> passwordEncoder.matches(request.getPassword(), user.getPassword()));
     }
 
-    // This bean needs to be configured in a SecurityConfig class
-    // For now, we assume it's available.
+    public List<Long> getOfficerIdsByStation(Long stationId) {
+        return userRepository.findByCreatedBy(stationId)
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+    }
 }
