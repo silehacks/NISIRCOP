@@ -1,0 +1,6 @@
+com/nisircop/le/apigateway/config/GatewayConfig.class
+com/nisircop/le/apigateway/config/SecurityConfig.class
+com/nisircop/le/apigateway/filter/AuthenticationFilter.class
+com/nisircop/le/apigateway/filter/AuthenticationFilter$Config.class
+com/nisircop/le/apigateway/config/JwtUtil.class
+com/nisircop/le/apigateway/ApiGatewayApplication.class

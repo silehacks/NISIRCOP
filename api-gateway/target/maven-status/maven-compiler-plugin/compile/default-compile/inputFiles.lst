@@ -1,0 +1,5 @@
+/app/api-gateway/src/main/java/com/nisircop/le/apigateway/config/JwtUtil.java
+/app/api-gateway/src/main/java/com/nisircop/le/apigateway/filter/AuthenticationFilter.java
+/app/api-gateway/src/main/java/com/nisircop/le/apigateway/ApiGatewayApplication.java
+/app/api-gateway/src/main/java/com/nisircop/le/apigateway/config/SecurityConfig.java
+/app/api-gateway/src/main/java/com/nisircop/le/apigateway/config/GatewayConfig.java

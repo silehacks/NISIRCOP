@@ -33,5 +33,4 @@ public class UserCreateRequest {
 
     private String phone;
     private String badgeNumber;
-    private String boundary; // Can be optional
 }
