@@ -1,9 +1,11 @@
 package com.nisircop.le.incidentservice.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.locationtech.jts.geom.Point;
 
 import java.time.LocalDateTime;
 
@@ -29,15 +31,13 @@ public class Incident {
     @Column(nullable = false)
     private String priority;
 
-    @Column(nullable = false)
-    private double latitude;
-
-    @Column(nullable = false)
-    private double longitude;
+    @Column(columnDefinition = "geometry(Point,4326)", nullable = false)
+    private Point location;
 
     @Column(nullable = false)
     private Long reportedBy; // User ID of the reporting officer
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
+    @CreationTimestamp
     private LocalDateTime occurredAt;
 }

@@ -38,7 +38,7 @@
             <version>1.19.0</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate.orm</groupId>
+            <groupId>org.hibernate.orm</gourpId>
             <artifactId>hibernate-spatial</artifactId>
             <version>6.2.7.Final</version>
         </dependency>

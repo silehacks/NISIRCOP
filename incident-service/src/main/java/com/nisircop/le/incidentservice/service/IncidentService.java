@@ -2,12 +2,18 @@ package com.nisircop.le.incidentservice.service;
 
 import com.nisircop.le.incidentservice.client.GeoServiceClient;
 import com.nisircop.le.incidentservice.client.PointValidationRequest;
+import com.nisircop.le.incidentservice.client.UserResponse;
 import com.nisircop.le.incidentservice.client.UserServiceClient;
+import com.nisircop.le.incidentservice.dto.IncidentCreateRequest;
 import com.nisircop.le.incidentservice.model.Incident;
 import com.nisircop.le.incidentservice.repository.IncidentRepository;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,101 +26,103 @@ public class IncidentService {
 
     @Autowired
     private IncidentRepository incidentRepository;
-
     @Autowired
     private GeoServiceClient geoServiceClient;
-
     @Autowired
     private UserServiceClient userServiceClient;
 
+    private final GeometryFactory geometryFactory = new GeometryFactory();
+
+    @Transactional(readOnly = true)
     public List<Incident> getAllIncidents(Long userId, String userRole) {
-        switch (userRole) {
-            case "SUPER_USER":
-                return incidentRepository.findAll();
-            case "POLICE_STATION":
+        return switch (userRole) {
+            case "SUPER_USER" -> incidentRepository.findAll();
+            case "POLICE_STATION" -> {
                 List<Long> userIds = new ArrayList<>(userServiceClient.getOfficerIdsByStation(userId));
                 userIds.add(userId);
-                return incidentRepository.findByReportedByIn(userIds);
-            case "OFFICER":
-                return incidentRepository.findByReportedBy(userId);
-            default:
-                return Collections.emptyList();
-        }
+                yield incidentRepository.findByReportedByIn(userIds);
+            }
+            case "OFFICER" -> incidentRepository.findByReportedBy(userId);
+            default -> Collections.emptyList();
+        };
     }
 
+    @Transactional(readOnly = true)
     public Optional<Incident> getIncidentById(Long id) {
         return incidentRepository.findById(id);
     }
 
-    public Incident createIncident(Incident incident, Long reporterId) {
-        var user = userServiceClient.getUserById(reporterId);
-        if (user == null) {
-            throw new RuntimeException("User not found with id: " + reporterId);
-        }
-        String reporterRole = user.role();
+    @Transactional
+    public Incident createIncident(IncidentCreateRequest request, Long reporterId, String reporterRole) {
+        Point point = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
+        validatePointInBoundary(reporterId, reporterRole, point);
 
-        PointValidationRequest validationRequest = new PointValidationRequest(
-                reporterId,
-                incident.getLatitude(),
-                incident.getLongitude(),
-                reporterRole
-        );
-        ResponseEntity<Boolean> validationResponse = geoServiceClient.validatePointInBoundary(validationRequest);
-
-        if (!validationResponse.getStatusCode().is2xxSuccessful() || !Boolean.TRUE.equals(validationResponse.getBody())) {
-            throw new RuntimeException("Incident location is outside the user's assigned boundary.");
-        }
-
+        Incident incident = new Incident();
+        incident.setTitle(request.getTitle());
+        incident.setDescription(request.getDescription());
+        incident.setIncidentType(request.getIncidentType());
+        incident.setPriority(request.getPriority());
+        incident.setLocation(point);
         incident.setReportedBy(reporterId);
-        incident.setOccurredAt(LocalDateTime.now());
+        // occurredAt is set by @CreationTimestamp
+
         return incidentRepository.save(incident);
     }
 
-    public Optional<Incident> updateIncident(Long id, Incident incidentDetails, Long userId) {
+    @Transactional
+    public Optional<Incident> updateIncident(Long id, IncidentCreateRequest request, Long userId) {
         return incidentRepository.findById(id).map(incident -> {
             validateUserPermission(userId, incident, "update");
-            incident.setTitle(incidentDetails.getTitle());
-            incident.setDescription(incidentDetails.getDescription());
-            incident.setIncidentType(incidentDetails.getIncidentType());
-            incident.setPriority(incidentDetails.getPriority());
-            incident.setLatitude(incidentDetails.getLatitude());
-            incident.setLongitude(incidentDetails.getLongitude());
+
+            Point point = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
+            // Assuming role is not needed for update, as only owner or super_user can update.
+            // If boundary validation is needed on update, the role would be required.
+            // validatePointInBoundary(incident.getReportedBy(), "UNKNOWN", point);
+
+            incident.setTitle(request.getTitle());
+            incident.setDescription(request.getDescription());
+            incident.setIncidentType(request.getIncidentType());
+            incident.setPriority(request.getPriority());
+            incident.setLocation(point);
+
             return incidentRepository.save(incident);
         });
     }
 
+    @Transactional
     public void deleteIncident(Long id, Long userId) {
         Incident incident = incidentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Incident not found with id: " + id));
         validateUserPermission(userId, incident, "delete");
-        incidentRepository.deleteById(id);
+        incidentRepository.delete(incident);
+    }
+
+    private void validatePointInBoundary(Long userId, String userRole, Point point) {
+        PointValidationRequest validationRequest = new PointValidationRequest(
+                userId,
+                point.getY(), // latitude
+                point.getX(), // longitude
+                userRole
+        );
+        ResponseEntity<Boolean> validationResponse = geoServiceClient.validatePointInBoundary(validationRequest);
+
+        if (validationResponse.getBody() == null || !validationResponse.getBody()) {
+            throw new RuntimeException("Incident location is outside the user's assigned boundary.");
+        }
     }
 
     private void validateUserPermission(Long userId, Incident incident, String action) {
-        var user = userServiceClient.getUserById(userId);
-        if (user == null) {
-            throw new RuntimeException("User not found with id: " + userId);
-        }
+        UserResponse user = Optional.ofNullable(userServiceClient.getUserById(userId))
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
         String userRole = user.role();
 
-        boolean isSuperUser = "SUPER_USER".equals(userRole);
-        boolean isOwner = incident.getReportedBy().equals(userId);
-        boolean isStationCommander = "POLICE_STATION".equals(userRole);
+        if ("SUPER_USER".equals(userRole)) return;
+        if (incident.getReportedBy().equals(userId)) return;
 
-        if (isSuperUser) {
-            return; // Super user can do anything
-        }
-
-        if (isOwner) {
-            return; // Owner can always modify their own incidents
-        }
-
-        if (isStationCommander) {
-            // Check if the incident reporter is one of the station's officers
+        if ("POLICE_STATION".equals(userRole)) {
             List<Long> officerIds = userServiceClient.getOfficerIdsByStation(userId);
-            if (officerIds.contains(incident.getReportedBy())) {
-                return; // Station commander can modify their officers' incidents
-            }
+            if (officerIds.contains(incident.getReportedBy())) return;
         }
 
         throw new RuntimeException("User does not have permission to " + action + " this incident.");
