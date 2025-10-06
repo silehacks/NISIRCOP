@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-screen bg-[#021024] text-[#C1E8FF]">
     <!-- Sidebar -->
-    <aside class="w-64 flex-shrink-0 bg-[#052659] p-4 flex flex-col">
+    <aside class="w-64 flex-shrink-0 bg-[#052659] p-4 flex flex-col hidden lg:flex">
       <div class="text-center py-4">
         <h1 class="text-2xl font-extrabold tracking-wider">NISIRCOP-LE</h1>
       </div>
@@ -36,7 +36,12 @@
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Header -->
       <header class="flex items-center justify-between p-4 bg-[#052659] border-b border-[#5483B3]">
-        <div>
+        <div class="flex items-center">
+          <button @click="toggleMobileMenu" class="lg:hidden mr-4 p-2 rounded-md hover:bg-[#5483B3]">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
           <h2 class="text-xl font-semibold">Welcome, {{ authStore.user?.username }}</h2>
         </div>
         <div class="flex items-center">
@@ -48,6 +53,34 @@
           </button>
         </div>
       </header>
+
+      <!-- Mobile Menu -->
+      <div v-if="showMobileMenu" class="lg:hidden bg-[#052659] border-b border-[#5483B3]">
+        <nav class="p-4">
+          <router-link
+            v-for="item in navigation"
+            :key="item.name"
+            :to="item.href"
+            v-show="isNavAllowed(item)"
+            @click="showMobileMenu = false"
+            :class="[
+              'flex items-center px-4 py-3 my-2 text-md font-medium rounded-lg transition-colors duration-200',
+              'hover:bg-[#5483B3] hover:text-white',
+            ]"
+            active-class="bg-[#5483B3] text-white"
+          >
+            <component :is="item.icon" class="h-6 w-6 mr-3" aria-hidden="true" />
+            {{ item.name }}
+          </router-link>
+          <button
+            @click="handleLogout"
+            class="w-full flex items-center px-4 py-3 text-md font-medium rounded-lg transition-colors duration-200 hover:bg-[#5483B3] hover:text-white"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            Logout
+          </button>
+        </nav>
+      </div>
 
       <!-- Content Area -->
       <main class="flex-1 overflow-x-hidden overflow-y-auto bg-[#021024] p-6">
@@ -81,17 +114,22 @@ const UsersIcon = shallowRef({ template: `<svg xmlns="http://www.w3.org/2000/svg
 const authStore = useAuthStore()
 const uiStore = useUiStore()
 const router = useRouter()
+const showMobileMenu = ref(false)
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, allowedRoles: ['SUPER_USER', 'POLICE_STATION', 'OFFICER'] },
   { name: 'Incidents', href: '/incidents', icon: DocumentReportIcon, allowedRoles: ['SUPER_USER', 'POLICE_STATION', 'OFFICER'] },
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon, allowedRoles: ['SUPER_USER', 'POLICE_STATION', 'OFFICER'] },
-  { name: 'Users', href: '/users', icon: UsersIcon, allowedRoles: ['SUPER_USER'] },
+  { name: 'Users', href: '/users', icon: UsersIcon, allowedRoles: ['SUPER_USER', 'POLICE_STATION'] },
 ]
 
 const isReportModalOpen = computed(() => uiStore.reportIncidentModal.isOpen);
 const modalLatitude = computed(() => uiStore.reportIncidentModal.lat);
 const modalLongitude = computed(() => uiStore.reportIncidentModal.lng);
+
+const toggleMobileMenu = () => {
+  showMobileMenu.value = !showMobileMenu.value
+}
 
 const handleLogout = () => {
   authStore.logout()

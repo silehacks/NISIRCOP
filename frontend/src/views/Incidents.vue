@@ -7,17 +7,46 @@
       </button>
     </div>
 
+    <!-- Search and Filter Controls -->
+    <div class="mb-6 bg-[#052659] p-4 rounded-lg">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="search" class="block text-sm font-medium text-[#7DA0CA] mb-2">Search</label>
+          <input
+            v-model="searchQuery"
+            type="text"
+            id="search"
+            placeholder="Search incidents..."
+            class="w-full px-4 py-2 bg-[#5483B3] bg-opacity-30 border border-[#5483B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7DA0CA]"
+          />
+        </div>
+        <div>
+          <label for="priorityFilter" class="block text-sm font-medium text-[#7DA0CA] mb-2">Priority</label>
+          <select
+            v-model="priorityFilter"
+            id="priorityFilter"
+            class="w-full px-4 py-2 bg-[#5483B3] bg-opacity-30 border border-[#5483B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7DA0CA]"
+          >
+            <option value="">All Priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <div v-if="incidentStore.isLoading" class="text-center p-8">
       <p>Loading incidents...</p>
     </div>
     <div v-else class="bg-[#052659] rounded-lg shadow-lg overflow-hidden">
-      <table class="min-w-full">
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
         <thead class="bg-[#021024]">
           <tr>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Title</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Type</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Priority</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Reported At</th>
             <th scope="col" class="relative px-6 py-3">
               <span class="sr-only">Actions</span>
@@ -25,7 +54,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-[#5483B3]">
-          <tr v-for="incident in incidentStore.incidents" :key="incident.id" class="hover:bg-[#5483B3] hover:bg-opacity-20">
+          <tr v-for="incident in filteredIncidents" :key="incident.id" class="hover:bg-[#5483B3] hover:bg-opacity-20">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium">{{ incident.title }}</div>
               <div class="text-xs text-[#7DA0CA]">{{ incident.id }}</div>
@@ -36,7 +65,6 @@
                 {{ incident.priority || '-' }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ incident.status || 'Open' }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm">{{ new Date(incident.occurredAt).toLocaleString() }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <button @click="focusIncident(incident)" class="text-[#7DA0CA] hover:text-white mr-4">View on Map</button>
@@ -45,9 +73,10 @@
             </td>
           </tr>
         </tbody>
-      </table>
-      <div v-if="incidentStore.incidents.length === 0" class="text-center p-8">
-        <p>No incidents found.</p>
+        </table>
+      </div>
+      <div v-if="filteredIncidents.length === 0" class="text-center p-8">
+        <p>{{ incidentStore.incidents.length === 0 ? 'No incidents found.' : 'No incidents match your filters.' }}</p>
       </div>
     </div>
     <IncidentEditModal
@@ -60,17 +89,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useIncidentStore } from '../stores/incident.store';
 import { useAuthStore } from '../stores/auth.store';
+import { useUiStore } from '../stores/ui.store';
 import IncidentEditModal from '../components/IncidentEditModal.vue';
 import type { Incident } from '../models/incident.model';
 
 const incidentStore = useIncidentStore();
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 
 const showEditModal = ref(false);
 const selectedIncident = ref<Incident | null>(null);
+const searchQuery = ref('');
+const priorityFilter = ref('');
+
+const filteredIncidents = computed(() => {
+  let filtered = incidentStore.incidents;
+
+  // Search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(incident =>
+      incident.title.toLowerCase().includes(query) ||
+      incident.description?.toLowerCase().includes(query) ||
+      incident.incidentType?.toLowerCase().includes(query)
+    );
+  }
+
+  // Priority filter
+  if (priorityFilter.value) {
+    filtered = filtered.filter(incident => incident.priority === priorityFilter.value);
+  }
+
+  return filtered;
+});
 
 const refresh = async () => {
   await incidentStore.fetchIncidents();
@@ -87,7 +141,7 @@ const focusIncident = (incident: Incident) => {
   const lat = incident.latitude;
   const lng = incident.longitude;
   if (typeof lat === 'number' && typeof lng === 'number') {
-    window.dispatchEvent(new CustomEvent('focus-incident', { detail: { lat, lng, id: incident.id } }));
+    uiStore.setMapFocus({ lat, lng, zoom: 15 });
   }
 };
 
