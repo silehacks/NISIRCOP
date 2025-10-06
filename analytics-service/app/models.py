@@ -11,7 +11,6 @@ class Incident(Base):
     description = Column(String)
     incident_type = Column(String, index=True)
     priority = Column(String, index=True)
-    status = Column(String, default="Open")
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     reported_by = Column(Integer, nullable=False)

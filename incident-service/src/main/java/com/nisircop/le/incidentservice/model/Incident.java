@@ -29,8 +29,6 @@ public class Incident {
     @Column(nullable = false)
     private String priority;
 
-    private String status = "Open";
-
     @Column(nullable = false)
     private double latitude;
 

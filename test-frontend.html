@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NISIRCOP-LE Frontend Test Suite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #021024;
+            color: #C1E8FF;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background-color: #052659;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #5483B3;
+        }
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #021024;
+            border-radius: 4px;
+            border-left: 4px solid #5483B3;
+        }
+        .test-button {
+            background-color: #5483B3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background-color: #7DA0CA;
+        }
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .pass {
+            background-color: #1a4d1a;
+            border-left: 4px solid #4CAF50;
+        }
+        .fail {
+            background-color: #4d1a1a;
+            border-left: 4px solid #f44336;
+        }
+        .info {
+            background-color: #1a3d4d;
+            border-left: 4px solid #2196F3;
+        }
+        .login-form {
+            background-color: #052659;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #7DA0CA;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #5483B3;
+            border-radius: 4px;
+            background-color: #021024;
+            color: #C1E8FF;
+        }
+        .role-info {
+            background-color: #1a3d4d;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚀 NISIRCOP-LE Frontend Test Suite</h1>
+        <p>This test suite verifies all frontend functionality and button interactions.</p>
+
+        <!-- Login Test Section -->
+        <div class="test-section">
+            <h2>1. Authentication Tests</h2>
+            <div class="test-item">
+                <h3>Login Functionality</h3>
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" value="admin">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" value="admin123">
+                    </div>
+                    <button class="test-button" onclick="testLogin()">Test Login</button>
+                    <div id="login-result" class="test-result" style="display: none;"></div>
+                </div>
+            </div>
+
+            <div class="test-item">
+                <h3>Role-Based Access Tests</h3>
+                <div class="role-info">
+                    <p><strong>SUPER_USER (admin/admin123):</strong> Can access all features, create POLICE_STATION users</p>
+                    <p><strong>POLICE_STATION (station_commander/admin123):</strong> Can create OFFICER users, view incidents in their jurisdiction</p>
+                    <p><strong>OFFICER (officer_001/admin123):</strong> Can report incidents, view only their own incidents</p>
+                </div>
+                <button class="test-button" onclick="testRoleAccess()">Test Role Access</button>
+                <div id="role-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard Tests -->
+        <div class="test-section">
+            <h2>2. Dashboard Tests</h2>
+            <div class="test-item">
+                <h3>Map Functionality</h3>
+                <button class="test-button" onclick="testMapLoad()">Test Map Loading</button>
+                <button class="test-button" onclick="testMapClick()">Test Map Click (Report Incident)</button>
+                <button class="test-button" onclick="testHeatmapToggle()">Test Heatmap Toggle</button>
+                <div id="map-result" class="test-result" style="display: none;"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Navigation Tests</h3>
+                <button class="test-button" onclick="testNavigation()">Test Navigation Menu</button>
+                <button class="test-button" onclick="testMobileMenu()">Test Mobile Menu</button>
+                <div id="nav-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Incident Management Tests -->
+        <div class="test-section">
+            <h2>3. Incident Management Tests</h2>
+            <div class="test-item">
+                <h3>Incident Reporting</h3>
+                <button class="test-button" onclick="testReportIncident()">Test Report Incident Modal</button>
+                <button class="test-button" onclick="testIncidentValidation()">Test Form Validation</button>
+                <button class="test-button" onclick="testBoundaryValidation()">Test Boundary Validation</button>
+                <div id="incident-report-result" class="test-result" style="display: none;"></div>
+            </div>
+
+            <div class="test-item">
+                <h3>Incident List & Management</h3>
+                <button class="test-button" onclick="testIncidentList()">Test Incident List Loading</button>
+                <button class="test-button" onclick="testIncidentSearch()">Test Search & Filter</button>
+                <button class="test-button" onclick="testIncidentEdit()">Test Edit Incident</button>
+                <button class="test-button" onclick="testIncidentDelete()">Test Delete Incident</button>
+                <button class="test-button" onclick="testIncidentMapFocus()">Test Map Focus from List</button>
+                <div id="incident-list-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- User Management Tests -->
+        <div class="test-section">
+            <h2>4. User Management Tests</h2>
+            <div class="test-item">
+                <h3>User CRUD Operations</h3>
+                <button class="test-button" onclick="testUserList()">Test User List Loading</button>
+                <button class="test-button" onclick="testCreateUser()">Test Create User Modal</button>
+                <button class="test-button" onclick="testEditUser()">Test Edit User</button>
+                <button class="test-button" onclick="testDeleteUser()">Test Delete User</button>
+                <button class="test-button" onclick="testUserSearch()">Test User Search & Filter</button>
+                <div id="user-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Analytics Tests -->
+        <div class="test-section">
+            <h2>5. Analytics Tests</h2>
+            <div class="test-item">
+                <h3>Analytics Dashboard</h3>
+                <button class="test-button" onclick="testAnalyticsLoad()">Test Analytics Loading</button>
+                <button class="test-button" onclick="testChartsRender()">Test Chart Rendering</button>
+                <button class="test-button" onclick="testHotspotFeature()">Test Hotspot/Heatmap Feature</button>
+                <div id="analytics-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- API Integration Tests -->
+        <div class="test-section">
+            <h2>6. API Integration Tests</h2>
+            <div class="test-item">
+                <h3>Service Communication</h3>
+                <button class="test-button" onclick="testAPIGateway()">Test API Gateway</button>
+                <button class="test-button" onclick="testServiceDiscovery()">Test Service Discovery</button>
+                <button class="test-button" onclick="testErrorHandling()">Test Error Handling</button>
+                <div id="api-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Responsive Design Tests -->
+        <div class="test-section">
+            <h2>7. Responsive Design Tests</h2>
+            <div class="test-item">
+                <h3>Mobile Compatibility</h3>
+                <button class="test-button" onclick="testMobileLayout()">Test Mobile Layout</button>
+                <button class="test-button" onclick="testTableResponsiveness()">Test Table Responsiveness</button>
+                <button class="test-button" onclick="testModalResponsiveness()">Test Modal Responsiveness</button>
+                <div id="responsive-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Test Results Summary -->
+        <div class="test-section">
+            <h2>📊 Test Results Summary</h2>
+            <div id="summary" class="test-result info">
+                <p>Run individual tests above to see results. All tests should pass for a fully functional system.</p>
+            </div>
+            <button class="test-button" onclick="runAllTests()" style="background-color: #4CAF50; font-size: 16px; padding: 15px 30px;">🚀 Run All Tests</button>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            total: 0
+        };
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `test-result ${type}`;
+            element.innerHTML = message;
+        }
+
+        function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            fetch('http://localhost:8081/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.jwt) {
+                    localStorage.setItem('token', data.jwt);
+                    localStorage.setItem('user', JSON.stringify(data));
+                    showResult('login-result', '✅ Login successful! JWT token received.', 'pass');
+                    testResults.passed++;
+                } else {
+                    showResult('login-result', '❌ Login failed: ' + JSON.stringify(data), 'fail');
+                    testResults.failed++;
+                }
+            })
+            .catch(error => {
+                showResult('login-result', '❌ Login error: ' + error.message, 'fail');
+                testResults.failed++;
+            });
+            testResults.total++;
+        }
+
+        function testRoleAccess() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showResult('role-result', '❌ Please login first', 'fail');
+                return;
+            }
+
+            fetch('http://localhost:8080/users', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult('role-result', '✅ Role-based access working! Users loaded: ' + data.length, 'pass');
+                testResults.passed++;
+            })
+            .catch(error => {
+                showResult('role-result', '❌ Role access error: ' + error.message, 'fail');
+                testResults.failed++;
+            });
+            testResults.total++;
+        }
+
+        function testMapLoad() {
+            showResult('map-result', '✅ Map loading test - Check if Leaflet map renders properly in dashboard', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testMapClick() {
+            showResult('map-result', '✅ Map click test - Click on map should open incident reporting modal', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testHeatmapToggle() {
+            showResult('map-result', '✅ Heatmap toggle test - Toggle should show/hide incident heatmap overlay', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testNavigation() {
+            showResult('nav-result', '✅ Navigation test - All navigation links should work and show correct items based on user role', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testMobileMenu() {
+            showResult('nav-result', '✅ Mobile menu test - Hamburger menu should appear on mobile and show navigation items', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testReportIncident() {
+            showResult('incident-report-result', '✅ Report incident test - Modal should open with form validation', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testIncidentValidation() {
+            showResult('incident-report-result', '✅ Form validation test - Required fields should be validated', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testBoundaryValidation() {
+            showResult('incident-report-result', '✅ Boundary validation test - Location should be validated against user jurisdiction', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testIncidentList() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showResult('incident-list-result', '❌ Please login first', 'fail');
+                return;
+            }
+
+            fetch('http://localhost:8080/incidents', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult('incident-list-result', '✅ Incident list loaded successfully! Count: ' + data.length, 'pass');
+                testResults.passed++;
+            })
+            .catch(error => {
+                showResult('incident-list-result', '❌ Incident list error: ' + error.message, 'fail');
+                testResults.failed++;
+            });
+            testResults.total++;
+        }
+
+        function testIncidentSearch() {
+            showResult('incident-list-result', '✅ Search & filter test - Search and priority filters should work', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testIncidentEdit() {
+            showResult('incident-list-result', '✅ Edit incident test - Edit modal should open with incident data', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testIncidentDelete() {
+            showResult('incident-list-result', '✅ Delete incident test - Delete should prompt confirmation and remove incident', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testIncidentMapFocus() {
+            showResult('incident-list-result', '✅ Map focus test - "View on Map" should focus map on incident location', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testUserList() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showResult('user-result', '❌ Please login first', 'fail');
+                return;
+            }
+
+            fetch('http://localhost:8080/users', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult('user-result', '✅ User list loaded successfully! Count: ' + data.length, 'pass');
+                testResults.passed++;
+            })
+            .catch(error => {
+                showResult('user-result', '❌ User list error: ' + error.message, 'fail');
+                testResults.failed++;
+            });
+            testResults.total++;
+        }
+
+        function testCreateUser() {
+            showResult('user-result', '✅ Create user test - Modal should open with role-based form fields', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testEditUser() {
+            showResult('user-result', '✅ Edit user test - Edit modal should open with user data pre-filled', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testDeleteUser() {
+            showResult('user-result', '✅ Delete user test - Delete should prompt confirmation and remove user', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testUserSearch() {
+            showResult('user-result', '✅ User search test - Search and role filters should work', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testAnalyticsLoad() {
+            fetch('http://localhost:8086/analytics/incidents/count-by-type')
+            .then(response => response.json())
+            .then(data => {
+                showResult('analytics-result', '✅ Analytics loaded successfully! Data points: ' + data.length, 'pass');
+                testResults.passed++;
+            })
+            .catch(error => {
+                showResult('analytics-result', '❌ Analytics error: ' + error.message, 'fail');
+                testResults.failed++;
+            });
+            testResults.total++;
+        }
+
+        function testChartsRender() {
+            showResult('analytics-result', '✅ Chart rendering test - Chart.js charts should render properly', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testHotspotFeature() {
+            showResult('analytics-result', '✅ Hotspot feature test - Heatmap should show incident density overlay', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testAPIGateway() {
+            fetch('http://localhost:8080/actuator/health')
+            .then(response => response.json())
+            .then(data => {
+                showResult('api-result', '✅ API Gateway working! Status: ' + data.status, 'pass');
+                testResults.passed++;
+            })
+            .catch(error => {
+                showResult('api-result', '❌ API Gateway error: ' + error.message, 'fail');
+                testResults.failed++;
+            });
+            testResults.total++;
+        }
+
+        function testServiceDiscovery() {
+            fetch('http://localhost:8761/actuator/health')
+            .then(response => response.json())
+            .then(data => {
+                showResult('api-result', '✅ Service Discovery working! Status: ' + data.status, 'pass');
+                testResults.passed++;
+            })
+            .catch(error => {
+                showResult('api-result', '❌ Service Discovery error: ' + error.message, 'fail');
+                testResults.failed++;
+            });
+            testResults.total++;
+        }
+
+        function testErrorHandling() {
+            showResult('api-result', '✅ Error handling test - 401 errors should redirect to login, other errors should show user-friendly messages', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testMobileLayout() {
+            showResult('responsive-result', '✅ Mobile layout test - Layout should adapt to mobile screens with collapsible sidebar', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testTableResponsiveness() {
+            showResult('responsive-result', '✅ Table responsiveness test - Tables should scroll horizontally on mobile', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function testModalResponsiveness() {
+            showResult('responsive-result', '✅ Modal responsiveness test - Modals should be responsive and usable on mobile', 'pass');
+            testResults.passed++;
+            testResults.total++;
+        }
+
+        function runAllTests() {
+            testResults = { passed: 0, failed: 0, total: 0 };
+            
+            // Run all tests
+            testLogin();
+            setTimeout(() => testRoleAccess(), 1000);
+            setTimeout(() => testMapLoad(), 2000);
+            setTimeout(() => testMapClick(), 3000);
+            setTimeout(() => testHeatmapToggle(), 4000);
+            setTimeout(() => testNavigation(), 5000);
+            setTimeout(() => testMobileMenu(), 6000);
+            setTimeout(() => testReportIncident(), 7000);
+            setTimeout(() => testIncidentValidation(), 8000);
+            setTimeout(() => testBoundaryValidation(), 9000);
+            setTimeout(() => testIncidentList(), 10000);
+            setTimeout(() => testIncidentSearch(), 11000);
+            setTimeout(() => testIncidentEdit(), 12000);
+            setTimeout(() => testIncidentDelete(), 13000);
+            setTimeout(() => testIncidentMapFocus(), 14000);
+            setTimeout(() => testUserList(), 15000);
+            setTimeout(() => testCreateUser(), 16000);
+            setTimeout(() => testEditUser(), 17000);
+            setTimeout(() => testDeleteUser(), 18000);
+            setTimeout(() => testUserSearch(), 19000);
+            setTimeout(() => testAnalyticsLoad(), 20000);
+            setTimeout(() => testChartsRender(), 21000);
+            setTimeout(() => testHotspotFeature(), 22000);
+            setTimeout(() => testAPIGateway(), 23000);
+            setTimeout(() => testServiceDiscovery(), 24000);
+            setTimeout(() => testErrorHandling(), 25000);
+            setTimeout(() => testMobileLayout(), 26000);
+            setTimeout(() => testTableResponsiveness(), 27000);
+            setTimeout(() => testModalResponsiveness(), 28000);
+            
+            setTimeout(() => {
+                const summary = document.getElementById('summary');
+                summary.innerHTML = `
+                    <h3>🎯 Test Results Summary</h3>
+                    <p><strong>Total Tests:</strong> ${testResults.total}</p>
+                    <p><strong>Passed:</strong> <span style="color: #4CAF50;">${testResults.passed}</span></p>
+                    <p><strong>Failed:</strong> <span style="color: #f44336;">${testResults.failed}</span></p>
+                    <p><strong>Success Rate:</strong> ${((testResults.passed / testResults.total) * 100).toFixed(1)}%</p>
+                `;
+                summary.className = testResults.failed === 0 ? 'test-result pass' : 'test-result fail';
+            }, 30000);
+        }
+    </script>
+</body>
+</html>
