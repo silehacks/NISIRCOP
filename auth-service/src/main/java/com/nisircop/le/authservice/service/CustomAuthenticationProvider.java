@@ -34,9 +34,15 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.hasBody()) {
                 UserResponseDto userDto = responseEntity.getBody();
                 if (userDto != null && userDto.getRole() != null) {
+                    // Convert UserResponseDto to UserDTO for consistency
+                    UserDTO userDTO = new UserDTO();
+                    userDTO.setId(userDto.getId());
+                    userDTO.setUsername(userDto.getUsername());
+                    userDTO.setRole(userDto.getRole());
+                    
                     // Store the entire DTO as the principal for later use
                     return new UsernamePasswordAuthenticationToken(
-                            userDto,
+                            userDTO,
                             password,
                             Collections.singleton(new SimpleGrantedAuthority("ROLE_" + userDto.getRole()))
                     );

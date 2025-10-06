@@ -1,5 +1,6 @@
 package com.nisircop.le.authservice.client;
 
+import com.nisircop.le.authservice.dto.UserDTO;
 import com.nisircop.le.authservice.dto.UserResponseDto;
 import com.nisircop.le.authservice.dto.ValidateRequest;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -16,5 +17,5 @@ public interface UserServiceClient {
     ResponseEntity<UserResponseDto> validateUser(@RequestBody ValidateRequest validateRequest);
 
     @GetMapping("/users/username/{username}")
-    ResponseEntity<UserResponseDto> getUserByUsername(@PathVariable("username") String username);
+    UserDTO getUserByUsername(@PathVariable("username") String username);
 }
