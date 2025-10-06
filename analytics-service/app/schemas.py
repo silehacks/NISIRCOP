@@ -7,3 +7,11 @@ class IncidentCount(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class IncidentLocation(BaseModel):
+    latitude: float
+    longitude: float
+
+    class Config:
+        orm_mode = True

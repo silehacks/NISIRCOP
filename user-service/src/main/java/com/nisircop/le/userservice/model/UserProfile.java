@@ -1,7 +1,8 @@
 package com.nisircop.le.userservice.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.Geometry;
 
 @Entity
 @Table(name = "user_profiles")
@@ -13,6 +14,7 @@ public class UserProfile {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     @Column(nullable = false)
@@ -24,8 +26,8 @@ public class UserProfile {
     private String phone;
     private String badgeNumber;
 
-    @Column(columnDefinition = "geometry(Polygon,4326)")
-    private Polygon boundary;
+    @Column(columnDefinition = "geometry(Geometry,4326)")
+    private Geometry boundary;
 
     // Getters and Setters
 
@@ -77,11 +79,11 @@ public class UserProfile {
         this.badgeNumber = badgeNumber;
     }
 
-    public Polygon getBoundary() {
+    public Geometry getBoundary() {
         return boundary;
     }
 
-    public void setBoundary(Polygon boundary) {
+    public void setBoundary(Geometry boundary) {
         this.boundary = boundary;
     }
 }

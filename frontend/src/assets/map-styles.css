@@ -1,0 +1,53 @@
+/* Custom styles for Leaflet markers */
+
+.marker-pin {
+  width: 24px;
+  height: 24px;
+  border-radius: 50% 50% 50% 0;
+  background: #C1E8FF; /* Light blue from the palette */
+  position: absolute;
+  transform: rotate(-45deg);
+  left: 50%;
+  top: 50%;
+  margin: -12px 0 0 -12px;
+  border: 1px solid #052659;
+}
+
+.marker-pin::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  margin: 7px 0 0 7px;
+  background: #5483B3; /* A darker blue */
+  position: absolute;
+  border-radius: 50%;
+}
+
+.hq-pin {
+    width: 28px;
+    height: 28px;
+    border-radius: 50% 50% 50% 0;
+    background: #7DA0CA; /* A distinct blue for HQ */
+    position: absolute;
+    transform: rotate(-45deg);
+    left: 50%;
+    top: 50%;
+    margin: -14px 0 0 -14px;
+    border: 1px solid #021024;
+}
+
+.hq-pin::after {
+    content: '★'; /* Star for HQ */
+    font-size: 16px;
+    color: #021024;
+    line-height: 28px;
+    text-align: center;
+    display: block;
+    transform: rotate(45deg);
+}
+
+/* Ensure the divIcon container itself doesn't interfere with clicks */
+.custom-div-icon, .hq-div-icon {
+    background: none;
+    border: none;
+}

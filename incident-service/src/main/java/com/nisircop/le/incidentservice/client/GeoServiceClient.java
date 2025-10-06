@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name = "geographic-service", path = "/geo")
 public interface GeoServiceClient {
 
-    @PostMapping("/validate/point-in-boundary")
+    @PostMapping("/validate-point")
     ResponseEntity<Boolean> validatePointInBoundary(@RequestBody PointValidationRequest request);
 }

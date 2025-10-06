@@ -1,352 +1,159 @@
-NISIRCOP-LE: Crime Analytics for Ethiopian Law Enforcement
-📋 Project Overview
-NISIRCOP-LE (NISIR Common Operational Picture For Law Enforcement) is a comprehensive digital platform designed specifically for Ethiopian police forces to transform traditional paper-based crime reporting into a modern, data-driven intelligence system.
+# NISIRCOP-LE: Crime Analytics for Ethiopian Law Enforcement
 
-🎯 The Problem We Solve
+## 📋 Project Overview
+NISIRCOP-LE (NISIR Common Operational Picture For Law Enforcement) is a comprehensive digital platform designed specifically for Ethiopian police forces. It transforms traditional, paper-based crime reporting into a modern, data-driven intelligence system, enabling real-time monitoring, analysis, and strategic decision-making.
+
+### The Problem We Solve
 Ethiopian law enforcement currently faces challenges with:
+- Paper-based crime reports that get lost, are hard to aggregate, or are delayed.
+- Manual crime mapping using physical maps and pins, which is inefficient and lacks analytical depth.
+- Limited data analysis capabilities, making it difficult to identify crime patterns and plan strategic interventions.
+- Decisions often based on intuition rather than on concrete, evidence-based insights.
+- No centralized, real-time database of crime incidents across different jurisdictions.
 
-Paper-based crime reports that get lost or delayed
-Manual crime mapping using physical maps and pins
-Limited data analysis capabilities for strategic planning
-Gut-feeling decisions instead of evidence-based policing
-No centralized database of crime incidents across jurisdictions
-💡 Our Solution
-A web-based system that enables:
+### 💡 Our Solution
+NISIRCOP-LE is a web-based microservices application that provides:
+- **Real-time digital crime reporting** with precise GPS coordinates.
+- **Interactive crime maps** for geographic intelligence and visualization.
+- **Powerful analytics** to identify crime hotspots, trends, and patterns.
+- **Strict hierarchical access control** that mirrors the police organizational structure.
+- **Automated boundary validation** to ensure incidents are reported within the correct jurisdiction.
 
-Real-time digital crime reporting with GPS coordinates
-Interactive crime maps and geographic intelligence
-Basic statistical analysis of crime patterns
-Strict hierarchical access control matching police organizational structure
-Automated boundary validation for incident reporting
-🏗️ System Architecture
-Technology Stack
-Backend Services
+---
 
-Java 17 with Spring Boot 3.2+ and Spring Cloud 2023.0+
-PostgreSQL 15+ with PostGIS extension for spatial data
-Redis 7+ for caching and rate limiting
-Python 3.11 with FastAPI for analytics service
-Docker and Docker Compose for containerization
-Frontend
+## 🏗️ System Architecture
 
-Vue.js 3 with Composition API and TypeScript
-Tailwind CSS 4+ for styling
-Leaflet.js for interactive mapping
-Chart.js for data visualization
-Pinia for state management
-Microservices Architecture
-Frontend (Port 3000)
-    ↓
-API Gateway (Port 8080) → Redis (Rate Limiting)
-    ↓
-Discovery Server (Port 8761) ← Service Registry
-    ↓
-[Services]
-├── Auth Service (8081) - Authentication & JWT
-├── User Service (8085) - User management & hierarchy
-├── Geographic Service (8084) - Spatial operations
-├── Incident Service (8083) - Crime data collection
-└── Analytics Service (8086) - Basic statistics
-👮‍♂️ User Roles & Hierarchy
-Strict Three-Tier System
-🔴 SUPER_USER (National/Regional Administrator)
+### Technology Stack
+- **Backend Services:** Java 17, Spring Boot 3.2+, Spring Cloud
+- **Database:** PostgreSQL 15+ with PostGIS for spatial data capabilities.
+- **Analytics Service:** Python 3.11 with FastAPI for high-performance data analysis.
+- **Frontend:** Vue.js 3 (Composition API, TypeScript), Pinia for state management, and Tailwind CSS for styling.
+- **Mapping:** Leaflet.js for interactive maps.
+- **Data Visualization:** Chart.js for creating insightful dashboards.
+- **Containerization:** Docker and Docker Compose for streamlined deployment.
 
-Who: Police commissioners, regional commanders
-Responsibilities:
-Create and manage Police Station accounts
-Access all crime data across their region/country
-View strategic analytics and reports
-Make resource allocation decisions
-Cannot create field officers directly
-🟡 POLICE_STATION (Station Commander)
+### Microservices
+The system is composed of the following microservices:
+- **Frontend (Port 3000):** The main user interface, built with Vue.js.
+- **API Gateway (Port 8080):** A single entry point for all client requests, handling routing and security.
+- **Discovery Server (Port 8761):** A Eureka server for service registration and discovery.
+- **Auth Service (Port 8081):** Manages user authentication and JWT generation.
+- **User Service (Port 8085):** Handles user profiles, roles, and hierarchical relationships.
+- **Geographic Service (Port 8084):** Manages spatial data, including user boundaries and location validation.
+- **Incident Service (Port 8083):** Manages the core functionality of creating, reading, updating, and deleting crime incidents.
+- **Analytics Service (Port 8086):** Provides data aggregation and analytics for crime trends.
 
-Who: Local police station chiefs
-Responsibilities:
-Create and manage Officer accounts for their station
-View all crimes within station's geographic boundary
-Monitor officer reporting activity
-Generate local crime reports
-Cannot create other police stations
-🟢 OFFICER (Field Officer)
+---
 
-Who: Police officers on patrol duty
-Responsibilities:
-Report crimes using mobile devices with GPS
-View only their own reported incidents
-Work within assigned patrol boundaries
-Cannot create any other users
-User Creation Flow
-BOOTSTRAP: Pre-seeded SUPER_USER (admin/admin123)
-    ↓
-SUPER_USER → Creates → POLICE_STATION users
-    ↓
-POLICE_STATION → Creates → OFFICER users
-    ↓
-OFFICER → No user creation rights
-🗺️ Geographic Intelligence
-Boundary Management
-Police Station Boundaries: Geographic polygons defining jurisdiction areas
-Officer Patrol Areas: Smaller polygons within station boundaries
-Automatic Validation: System ensures incidents are reported within correct areas
-Spatial Operations
-Point-in-Polygon Checks: Validate incident locations against officer boundaries
-Boundary Containment: Ensure officer areas fit within station jurisdictions
-Distance Calculations: Proximity analysis for basic geographic queries
-📊 Core Services Documentation
-1. 🏗️ Discovery Server (Port 8761)
-Purpose: Service registry and health monitoring
+## 👮‍♂️ User Roles & Hierarchy
+The system enforces a strict three-tier user hierarchy to ensure data security and appropriate access levels.
 
-Tracks all running services and their locations
-Provides service discovery for inter-service communication
-Health monitoring and automatic failover
-Dashboard available at http://localhost:8761
-2. 🚪 API Gateway (Port 8080)
-Purpose: Single entry point and security layer
+- **SUPER_USER (National/Regional Administrator):**
+  - Can create and manage `POLICE_STATION` accounts.
+  - Has access to all crime data across all jurisdictions.
+  - Can view high-level strategic analytics and reports.
+  - **Note:** `SUPER_USER` accounts can report incidents anywhere, bypassing the usual geographic boundary checks. This is an intentional design choice for administrative purposes.
 
-JWT token validation for all requests
-Rate limiting (10-100 requests/minute based on role)
-Request routing to appropriate services
-Security header injection for downstream services
-3. 🔐 Auth Service (Port 8081)
-Purpose: User authentication and credential management
+- **POLICE_STATION (Station Commander):**
+  - Can create and manage `OFFICER` accounts within their station.
+  - Can view all incidents reported within their station's geographic boundary.
+  - Can edit and delete incidents reported by their officers.
+  - Can monitor local crime reports and officer activity.
 
-BCrypt password hashing (strength 12)
-JWT token generation and validation (24-hour expiration)
-Login/logout functionality
-Token blacklisting for security
-4. 👥 User Service (Port 8085)
-Purpose: User management and hierarchical organization
+- **OFFICER (Field Officer):**
+  - Can report new incidents from the field.
+  - Can only view incidents they have personally reported.
+  - Cannot create other users or view data outside their own reports.
 
-Strict role-based user creation validation
-Geographic boundary assignment and validation
-User profile management (badge numbers, contact info)
-Organizational hierarchy maintenance
-5. 🗺️ Geographic Service (Port 8084)
-Purpose: Spatial operations and boundary management
+---
 
-Point-in-polygon validation for incident reporting
-Boundary containment checks
-Spatial queries for crime data
-Basic hotspot detection using PostGIS functions
-6. 📝 Incident Service (Port 8083)
-Purpose: Crime data collection and management
+## 🚀 Quick Start Guide
 
-Digital incident reporting with GPS coordinates
-Role-based data access control
-Basic incident status tracking
-Simple filtering and search capabilities
-7. 📊 Analytics Service (Port 8086)
-Purpose: Basic crime statistics and reporting
+### Prerequisites
+- Docker and Docker Compose
+- Java 17+
+- Maven 3.6+
+- Node.js 18+ and npm
+- Python 3.11+ and pip
 
-Incident counts by type, priority, and time period
-Officer activity reporting
-Basic temporal patterns (hourly/daily counts)
-Simple aggregations for dashboard displays
-8. 🖥️ Frontend (Port 3000)
-Purpose: User interface for all system interactions
+### Installation & Startup
 
-Interactive crime maps with Leaflet.js
-Incident reporting forms with GPS capture
-Role-based dashboards and reports
-Real-time data visualization
-🚀 Quick Start Guide
-Prerequisites
-Docker and Docker Compose
-8GB+ RAM recommended
-Ports 3000, 5432, 6379, 8080-8086, 8761 available
-Installation & Startup
-# 1. Clone the repository
+**1. Clone the Repository**
+```bash
 git clone <repository-url>
 cd nisircop-le
+```
 
-# 2. Create your environment file from the .env.example template
-# (A .env.example file is provided with the project)
+**2. Set Up Environment Variables**
+Create a `.env` file from the provided template. This file contains essential configuration, including database credentials and a secure JWT secret.
+```bash
 cp .env.example .env
+```
+**Important:** The default `JWT_SECRET` in the `.env` file is for development only. For production, generate a new, secure secret using a tool like `openssl rand -base64 32`.
 
-# 3. IMPORTANT: Review and edit the .env file
-# You must provide a secure, random string for JWT_SECRET.
-# nano .env
+**3. Run the Application**
 
-# 4. Start the system using Docker Compose
-# The --build flag is only needed the first time or after code changes.
-sudo docker compose up -d --build
+**Option A: Using Docker Compose (Recommended)**
+This is the simplest way to get the entire application running.
+```bash
+sudo docker compose up --build -d
+```
+All services, including the database, will be started in detached mode.
 
-# 5. Check the status of the containers
-sudo docker compose ps
-Default Login Credentials
-Admin: admin / admin123 (SUPER_USER)
-Station Commander: station_commander / admin123 (POLICE_STATION)
-Officer: officer_001 / admin123 (OFFICER)
-Note: It is critical to change these default passwords in a production environment.
+**Option B: Local Development Setup**
+If you encounter issues with Docker (e.g., rate limits), you can run the services locally.
 
-📦 Production Deployment Considerations
-For a production deployment, it is crucial to manage environment variables and secrets securely. This project uses a .env file to handle sensitive configurations.
+*   **Start the Database:**
+    ```bash
+    sudo docker compose up -d postgres
+    ```
 
-Environment File (.env)
-Before starting the application, you must create a .env file in the project root. A template named .env.example is provided to guide you. This file prevents hardcoding sensitive information like database passwords or secret keys into the application's code.
+*   **Start Backend Services (in separate terminals):**
+    ```bash
+    # Discovery Server
+    cd discovery-server && mvn spring-boot:run &
 
-🚨 Security Best Practices
-Change Default Passwords: The default user accounts are for demonstration purposes only. You must change the passwords for all default users immediately upon first login in a production setting.
-Secure JWT Secret: The JWT_SECRET in your .env file must be a long, random, and cryptographically strong string. Do not use the default or a simple, guessable value.
-Network Security: In a production environment, expose only the necessary ports (e.g., 80/443 for the frontend and API gateway) to the public internet. Use a firewall to restrict access to internal service ports like the database or discovery server.
-Do Not Commit .env: Ensure that your .env file is listed in your .gitignore file and is never committed to version control.
-📈 Data Flow & Workflow
-Officer Reporting Workflow
-Officer responds to incident in the field
-Opens mobile app and clicks "New Incident"
-System auto-captures GPS location
-Officer fills form: title, description, type, priority
-System validates location is within officer's patrol area
-Incident saved to database with timestamp and officer ID
-Station Commander Monitoring
-Logs into dashboard
-Views all incidents within station boundary on interactive map
-Checks officer activity and reporting statistics
-Generates reports for higher authorities
-Monitors crime patterns in their jurisdiction
-Regional Administrator Oversight
-Accesses regional dashboard
-Views cross-station crime trends
-Analyzes resource allocation needs
-Makes strategic decisions based on aggregated data
-🔒 Security Features
-Multi-Layer Security
-API Gateway: JWT validation, rate limiting, request sanitization
-Service Level: Spring Security, role-based access control
-Database: BCrypt password hashing, prepared statements
-Geographic: Boundary-based data access control
-Data Access Control
-Officers: Can only access and modify their own incidents
-Station Commanders: Can view all incidents within their geographic boundary
-Super Users: Have access to all data across the system
-🗃️ Database Schema
-Core Tables
--- Users with hierarchical structure
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('SUPER_USER', 'POLICE_STATION', 'OFFICER')),
-    parent_id BIGINT REFERENCES users(id),
-    is_active BOOLEAN DEFAULT TRUE
-);
+    # API Gateway
+    cd ../api-gateway && mvn spring-boot:run &
 
--- User profiles with geographic boundaries
-CREATE TABLE user_profiles (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(id),
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    badge_number VARCHAR(50),
-    boundary GEOMETRY(POLYGON, 4326)
-);
+    # Auth Service
+    cd ../auth-service && mvn spring-boot:run &
 
--- Crime incidents
-CREATE TABLE incidents (
-    id BIGSERIAL PRIMARY KEY,
-    title VARCHAR(200) NOT NULL,
-    description TEXT,
-    incident_type VARCHAR(50),
-    priority VARCHAR(20) NOT NULL,
-    latitude DECIMAL(10, 8) NOT NULL,
-    longitude DECIMAL(10, 8) NOT NULL,
-    reported_by BIGINT REFERENCES users(id),
-    occurred_at TIMESTAMP NOT NULL
-);
-🌍 Ethiopian Context
-Localization Features
-Addis Ababa Center: Default map center at [9.1450, 38.7667]
-Ethiopian Time Zone: UTC+3 (East Africa Time)
-Local Phone Numbers: Support for Ethiopian format (+251XXXXXXXXX)
-Police Ranks: Customizable to Ethiopian police hierarchy
-Geographic Coverage
-Designed for urban crime analysis in Ethiopian cities
-Support for multiple police stations across regions
-Scalable to cover entire country as needed
-📊 Analytics & Reporting
-Basic Statistical Features
-Incident Counts: By type, priority, time period
-Officer Activity: Reporting frequency and patterns
-Geographic Distribution: Basic heat maps of incident density
-Temporal Patterns: Hourly, daily, monthly trends
-Available Reports
-Daily Activity Reports: Summary of incidents by station
-Officer Performance: Basic reporting statistics
-Crime Type Analysis: Distribution of incident types
-Priority Analysis: Breakdown by urgency levels
-🔧 Development & Customization
-Local Development Setup
-# Start infrastructure services
-docker-compose up postgres redis discovery-server
+    # User Service
+    cd ../user-service && mvn spring-boot:run &
 
-# Run services individually for development
-cd auth-service && ./mvnw spring-boot:run
-cd user-service && ./mvnw spring-boot:run
-# ... repeat for other services
+    # Geographic Service
+    cd ../geographic-service && mvn spring-boot:run &
 
-# Run frontend
-cd frontend && npm run dev
-API Documentation
-Swagger UI: Available at each service's /swagger-ui.html endpoint
-API Gateway: http://localhost:8080/swagger-ui.html
-Analytics API: http://localhost:8086/docs
+    # Incident Service
+    cd ../incident-service && mvn spring-boot:run &
 
-## SUPER_USER geographic behavior
+    # Analytics Service
+    cd ../analytics-service
+    pip install -r requirements.txt
+    uvicorn app.main:app --host 0.0.0.0 --port 8086 &
+    ```
 
-Design note: SUPER_USER accounts (regional/national administrators) are intentionally allowed to report incidents outside of station or officer boundaries. This is an explicit, audited design decision to allow administrators to create or record incidents at a higher level (for example mass incidents, regional reports, or administrative entries) without being blocked by local patrol/station boundaries.
+*   **Start the Frontend:**
+    ```bash
+    cd ../frontend
+    npm install
+    npm run dev
+    ```
 
-Important details:
-- Only SUPER_USER role bypasses the geographic point-in-polygon checks when reporting incidents. Regular POLICE_STATION and OFFICER roles are still validated against their assigned boundaries.
-- The bypass is implemented at the geographic validation layer and is logged at the service level; this is to preserve an auditable trail for administrative actions.
-- If you need a different policy (for example, allow station commanders to also bypass in certain conditions), update the geographic-service validation logic and add appropriate audit logging and tests.
+**4. Access the Application**
+Once all services are running, you can access the application in your browser at `http://localhost:3000`.
 
-🚨 Troubleshooting
-Common Issues
-# Services not starting
-docker-compose logs [service-name]
+### Default Login Credentials
+- **SUPER_USER:** `admin` / `admin123`
+- **POLICE_STATION:** `station_commander` / `admin123`
+- **OFFICER:** `officer_001` / `admin123`
 
-# Database connection issues
-docker-compose exec postgres psql -U nisircop_user -d nisircop_db -c "SELECT 1;"
+**Note:** It is critical to change these default passwords in a production environment.
 
-# Frontend not loading
-curl http://localhost:8080/actuator/health
-Health Checks
-All services provide health endpoints:
+---
 
-Spring Boot Services: /actuator/health
-Analytics Service: /health
-Frontend: Nginx status page
-📈 Performance Targets
-System Performance
-Data Collection: Support for 1000+ monthly incident reports
-Response Time: <200ms for API calls, <2s for complex queries
-Availability: 99.9% uptime with health monitoring
-Concurrent Users: Support for 50+ simultaneous officers reporting
-Geographic Performance
-Spatial Queries: Optimized with PostGIS indexes
-Boundary Validation: Real-time point-in-polygon checks
-Map Rendering: Efficient tile loading and caching
-🔮 Future Enhancements
-Potential Extensions
-Mobile App: Native Android/iOS applications for field officers
-Advanced Analytics: Machine learning for crime prediction
-Integration: APIs for other government systems
-Real-time Notifications: Alert system for critical incidents
-Evidence Management: Digital evidence upload and tracking
-🤝 Contributing
-Development Guidelines
-Follow Spring Boot best practices for backend services
-Use Vue 3 Composition API patterns for frontend
-Maintain PostgreSQL + PostGIS spatial query standards
-Ensure role-based access control in all features
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-🙏 Acknowledgments
-Ethiopian Federal Police for domain expertise and requirements
-PostGIS Community for spatial database capabilities
-Spring Cloud for microservices infrastructure
-Vue.js Community for frontend framework and ecosystem
-NISIRCOP-LE - Transforming Ethiopian law enforcement through digital crime intelligence and data-driven policing for safer communities.
+### 🚨 Troubleshooting
+- **Connection Errors:** If services fail to connect, ensure the `discovery-server` is running and that all services have successfully registered. Check the log files for each service for detailed error messages.
+- **Frontend Issues:** If the frontend is not loading correctly, check the browser's developer console for errors. Ensure the API gateway is running and that the proxy configuration in `vite.config.ts` is correct.
+- **Database Problems:** Use `sudo docker compose logs postgres` to check the database logs. Ensure the credentials in your `.env` file match those in the `docker-compose.yml` file.

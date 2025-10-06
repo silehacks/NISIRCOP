@@ -1,105 +1,107 @@
 <template>
-  <div class="p-6">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold text-black">Users</h2>
+  <div class="text-[#C1E8FF]">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-3xl font-extrabold">User Management</h2>
+      <button @click="openCreateModal" class="px-4 py-2 text-sm font-medium text-white bg-[#5483B3] rounded-md hover:bg-[#7DA0CA] transition-colors">
+        Create New User
+      </button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="md:col-span-2 bg-white p-4 rounded shadow">
-        <table class="min-w-full bg-white">
-          <thead>
-            <tr class="text-left">
-              <th class="px-4 py-2">ID</th>
-              <th class="px-4 py-2">Username</th>
-              <th class="px-4 py-2">Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="u in users" :key="u.id" class="border-t">
-              <td class="px-4 py-2">{{ u.id }}</td>
-              <td class="px-4 py-2">{{ u.username }}</td>
-              <td class="px-4 py-2">{{ u.role }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="bg-white p-4 rounded shadow">
-        <h3 class="font-semibold mb-2">Create User</h3>
-        <form @submit.prevent="createNew">
-          <div class="mb-2">
-            <label class="block text-sm">Username</label>
-            <input v-model="form.username" class="w-full px-2 py-1 border rounded" />
-          </div>
-          <div class="mb-2">
-            <label class="block text-sm">Password</label>
-            <input v-model="form.password" type="password" class="w-full px-2 py-1 border rounded" />
-          </div>
-                <div class="mb-2">
-                  <label class="block text-sm">Role</label>
-                  <select v-model="form.role" class="w-full px-2 py-1 border rounded">
-                    <option>SUPER_USER</option>
-                    <option>POLICE_STATION</option>
-                    <option>OFFICER</option>
-                  </select>
-                </div>
-                <div class="mb-2">
-                  <label class="block text-sm">Email</label>
-                  <input v-model="form.email" type="email" class="w-full px-2 py-1 border rounded" />
-                </div>
-                <div class="mb-2">
-                  <label class="block text-sm">First name</label>
-                  <input v-model="form.firstName" class="w-full px-2 py-1 border rounded" />
-                </div>
-                <div class="mb-2">
-                  <label class="block text-sm">Last name</label>
-                  <input v-model="form.lastName" class="w-full px-2 py-1 border rounded" />
-                </div>
-                <div class="mb-2">
-                  <label class="block text-sm">Phone</label>
-                  <input v-model="form.phone" class="w-full px-2 py-1 border rounded" />
-                </div>
-                <div class="mb-2">
-                  <label class="block text-sm">Badge number</label>
-                  <input v-model="form.badgeNumber" class="w-full px-2 py-1 border rounded" />
-                </div>
-                <div class="mb-2">
-                  <label class="block text-sm">Boundary (optional)</label>
-                  <input v-model="form.boundary" class="w-full px-2 py-1 border rounded" />
-                </div>
-          <div class="flex justify-end">
-            <button type="submit" class="px-3 py-1 bg-[#1478f0] text-white rounded">Create</button>
-          </div>
-        </form>
-      </div>
+    <div v-if="userStore.isLoading" class="text-center p-8">
+      <p>Loading users...</p>
     </div>
+    <div v-else class="bg-[#052659] rounded-lg shadow-lg overflow-hidden">
+      <table class="min-w-full">
+        <thead class="bg-[#021024]">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">User</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Role</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+            <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[#5483B3]">
+          <tr v-for="user in userStore.users" :key="user.id" class="hover:bg-[#5483B3] hover:bg-opacity-20">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium">{{ user.username }}</div>
+              <div class="text-xs text-[#7DA0CA]">{{ user.email }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ user.role }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span :class="user.isActive ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                {{ user.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button @click="openEditModal(user)" class="text-[#7DA0CA] hover:text-white mr-4">Edit</button>
+              <button @click="handleDeleteUser(user.id)" class="text-red-400 hover:text-red-300">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <UserFormModal
+      :is-open="isModalOpen"
+      :user-to-edit="selectedUser"
+      @close="closeModal"
+      @submit="handleFormSubmit"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import * as UsersService from '../services/users.service'
+import { ref, onMounted } from 'vue';
+import { useUserStore } from '../stores/user.store';
+import UserFormModal from '../components/UserFormModal.vue';
 
-const users = ref<any[]>([])
-const form = ref({ username: '', password: '', role: 'POLICE_STATION', email: '', firstName: '', lastName: '', phone: '', badgeNumber: '', boundary: null })
+const userStore = useUserStore();
+const isModalOpen = ref(false);
+const selectedUser = ref<any | null>(null);
 
-const load = async () => {
+onMounted(() => {
+  userStore.fetchUsers();
+});
+
+const openCreateModal = () => {
+  selectedUser.value = null;
+  isModalOpen.value = true;
+};
+
+const openEditModal = (user: any) => {
+  selectedUser.value = user;
+  isModalOpen.value = true;
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+  selectedUser.value = null;
+};
+
+const handleFormSubmit = async (formData: any) => {
   try {
-    const r = await UsersService.getUsers()
-    users.value = r.data
-  } catch (e) { users.value = [] }
-}
+    if (selectedUser.value) {
+      // Update user
+      await userStore.updateUser(selectedUser.value.id, formData);
+    } else {
+      // Create user
+      await userStore.addUser(formData);
+    }
+    closeModal();
+  } catch (error) {
+    console.error('Failed to save user:', error);
+    // The modal will show its own error
+  }
+};
 
-const createNew = async () => {
-  try {
-    await UsersService.createUser(form.value)
-    form.value = { username: '', password: '', role: 'USER' }
-    await load()
-  } catch (e) { console.error(e) }
-}
-
-onMounted(load)
+const handleDeleteUser = async (id: number) => {
+  if (confirm('Are you sure you want to delete this user?')) {
+    try {
+      await userStore.deleteUser(id);
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert('Failed to delete user.');
+    }
+  }
+};
 </script>
-
-<style scoped>
-</style>
