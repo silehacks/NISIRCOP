@@ -97,7 +97,7 @@ const validationErrors = ref<Record<string, string>>({});
 watch(() => props.latitude, (newVal) => form.value.latitude = newVal);
 watch(() => props.longitude, (newVal) => form.value.longitude = newVal);
 
-const validateForm = () => {
+const validateForm = async () => {
   validationErrors.value = {};
   
   if (!form.value.title.trim()) {
@@ -116,6 +116,19 @@ const validateForm = () => {
     validationErrors.value.description = 'Description must be less than 500 characters';
   }
   
+  // Validate location is within user's jurisdiction (skip for SUPER_USER)
+  if (authStore.user?.role !== 'SUPER_USER' && form.value.latitude && form.value.longitude && authStore.user?.id) {
+    try {
+      const response = await GeoService.validateLocation(form.value.latitude, form.value.longitude, authStore.user.id);
+      if (!response.data.valid) {
+        validationErrors.value.location = 'This location is outside your jurisdiction';
+      }
+    } catch (err) {
+      console.warn('Could not validate location:', err);
+      // Don't block submission if validation service is unavailable
+    }
+  }
+  
   return Object.keys(validationErrors.value).length === 0;
 };
 
@@ -123,7 +136,7 @@ const submitIncident = async () => {
   error.value = null;
   validationErrors.value = {};
   
-  if (!validateForm()) {
+  if (!(await validateForm())) {
     return;
   }
   

@@ -23,12 +23,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - JWT_SECRET=${JWT_SECRET}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
-      postgres:
-        condition: service_healthy
       discovery-server:
         condition: service_started
 
@@ -38,12 +33,7 @@ services:
       - "8085:8085"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
-      postgres:
-        condition: service_healthy
       discovery-server:
         condition: service_started
 
@@ -53,12 +43,7 @@ services:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
-      postgres:
-        condition: service_healthy
       discovery-server:
         condition: service_started
 
@@ -68,12 +53,7 @@ services:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
-      postgres:
-        condition: service_healthy
       discovery-server:
         condition: service_started
 
@@ -82,31 +62,14 @@ services:
     ports:
       - "8086:8086"
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=sqlite:///./data/nisircop.db
       - EUREKA_SERVER_URL=http://discovery-server:8761/eureka
       - EUREKA_APP_NAME=ANALYTICS-SERVICE
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  postgres:
-    image: postgis/postgis:15-3.4
-    ports:
-      - "5436:5432"
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - ./data:/app/data
+    depends_on:
+      discovery-server:
+        condition: service_started
 
   frontend:
     build: ./frontend
@@ -114,6 +77,3 @@ services:
       - "3000:80"
     depends_on:
       - api-gateway
-
-volumes:
-  postgres_data:
