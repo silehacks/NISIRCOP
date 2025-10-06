@@ -12,11 +12,13 @@
         <div>
           <label for="title" class="block text-sm font-medium text-[#7DA0CA]">Title</label>
           <input v-model="form.title" type="text" id="title" required class="w-full mt-1 px-4 py-2 bg-[#5483B3] bg-opacity-30 border border-[#5483B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7DA0CA]">
+          <p v-if="validationErrors.title" class="mt-1 text-sm text-red-400">{{ validationErrors.title }}</p>
         </div>
 
         <div>
           <label for="description" class="block text-sm font-medium text-[#7DA0CA]">Description</label>
           <textarea v-model="form.description" id="description" rows="3" class="w-full mt-1 px-4 py-2 bg-[#5483B3] bg-opacity-30 border border-[#5483B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7DA0CA]"></textarea>
+          <p v-if="validationErrors.description" class="mt-1 text-sm text-red-400">{{ validationErrors.description }}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -45,6 +47,10 @@
           </div>
         </div>
 
+        <div v-if="validationErrors.location" class="text-red-400 text-sm text-center">
+          {{ validationErrors.location }}
+        </div>
+        
         <div v-if="error" class="text-red-400 text-sm text-center">
           {{ error }}
         </div>
@@ -63,6 +69,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useIncidentStore } from '../stores/incident.store';
+import { useAuthStore } from '../stores/auth.store';
+import * as GeoService from '../services/geographic.service';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -73,6 +81,7 @@ const props = defineProps<{
 const emit = defineEmits(['close']);
 
 const incidentStore = useIncidentStore();
+const authStore = useAuthStore();
 const form = ref({
   title: '',
   description: '',
@@ -83,12 +92,41 @@ const form = ref({
 });
 const error = ref<string | null>(null);
 const isLoading = ref(false);
+const validationErrors = ref<Record<string, string>>({});
 
 watch(() => props.latitude, (newVal) => form.value.latitude = newVal);
 watch(() => props.longitude, (newVal) => form.value.longitude = newVal);
 
+const validateForm = () => {
+  validationErrors.value = {};
+  
+  if (!form.value.title.trim()) {
+    validationErrors.value.title = 'Title is required';
+  }
+  
+  if (!form.value.latitude || !form.value.longitude) {
+    validationErrors.value.location = 'Location coordinates are required';
+  }
+  
+  if (form.value.title.length > 100) {
+    validationErrors.value.title = 'Title must be less than 100 characters';
+  }
+  
+  if (form.value.description && form.value.description.length > 500) {
+    validationErrors.value.description = 'Description must be less than 500 characters';
+  }
+  
+  return Object.keys(validationErrors.value).length === 0;
+};
+
 const submitIncident = async () => {
   error.value = null;
+  validationErrors.value = {};
+  
+  if (!validateForm()) {
+    return;
+  }
+  
   isLoading.value = true;
   try {
     await incidentStore.addIncident(form.value);

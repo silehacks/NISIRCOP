@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watchEffect } from 'vue';
+import { onMounted, ref, watchEffect, nextTick } from 'vue';
 import { useAnalyticsStore } from '../stores/analytics.store';
 import Chart from 'chart.js/auto';
 
@@ -34,11 +34,13 @@ onMounted(() => {
   analyticsStore.fetchAnalytics();
 });
 
-watchEffect(() => {
+watchEffect(async () => {
   if (analyticsStore.incidentsByType.length > 0) {
+    await nextTick();
     renderIncidentsByTypeChart();
   }
   if (analyticsStore.incidentsByPriority.length > 0) {
+    await nextTick();
     renderIncidentsByPriorityChart();
   }
 });

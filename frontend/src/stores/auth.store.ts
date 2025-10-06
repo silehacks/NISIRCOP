@@ -29,9 +29,18 @@ export const useAuthStore = defineStore('auth', () => {
       const { jwt, ...userData } = response.data
       setAuthData(jwt, userData)
       return response.data
-    } catch (error) {
+    } catch (error: any) {
       clearAuthData()
-      throw error
+      // Provide more specific error messages
+      if (error.response?.status === 401) {
+        throw new Error('Invalid username or password')
+      } else if (error.response?.status === 403) {
+        throw new Error('Account is disabled')
+      } else if (error.response?.status >= 500) {
+        throw new Error('Server error. Please try again later.')
+      } else {
+        throw new Error('Login failed. Please check your connection and try again.')
+      }
     }
   }
 

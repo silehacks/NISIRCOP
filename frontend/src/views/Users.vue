@@ -7,11 +7,53 @@
       </button>
     </div>
 
+    <!-- Search and Filter Controls -->
+    <div class="mb-6 bg-[#052659] p-4 rounded-lg">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label for="search" class="block text-sm font-medium text-[#7DA0CA] mb-2">Search</label>
+          <input
+            v-model="searchQuery"
+            type="text"
+            id="search"
+            placeholder="Search users..."
+            class="w-full px-4 py-2 bg-[#5483B3] bg-opacity-30 border border-[#5483B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7DA0CA]"
+          />
+        </div>
+        <div>
+          <label for="roleFilter" class="block text-sm font-medium text-[#7DA0CA] mb-2">Role</label>
+          <select
+            v-model="roleFilter"
+            id="roleFilter"
+            class="w-full px-4 py-2 bg-[#5483B3] bg-opacity-30 border border-[#5483B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7DA0CA]"
+          >
+            <option value="">All Roles</option>
+            <option value="SUPER_USER">Super User</option>
+            <option value="POLICE_STATION">Police Station</option>
+            <option value="OFFICER">Officer</option>
+          </select>
+        </div>
+        <div>
+          <label for="statusFilter" class="block text-sm font-medium text-[#7DA0CA] mb-2">Status</label>
+          <select
+            v-model="statusFilter"
+            id="statusFilter"
+            class="w-full px-4 py-2 bg-[#5483B3] bg-opacity-30 border border-[#5483B3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7DA0CA]"
+          >
+            <option value="">All Statuses</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <div v-if="userStore.isLoading" class="text-center p-8">
       <p>Loading users...</p>
     </div>
     <div v-else class="bg-[#052659] rounded-lg shadow-lg overflow-hidden">
-      <table class="min-w-full">
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
         <thead class="bg-[#021024]">
           <tr>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">User</th>
@@ -21,7 +63,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-[#5483B3]">
-          <tr v-for="user in userStore.users" :key="user.id" class="hover:bg-[#5483B3] hover:bg-opacity-20">
+          <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-[#5483B3] hover:bg-opacity-20">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-medium">{{ user.username }}</div>
               <div class="text-xs text-[#7DA0CA]">{{ user.email }}</div>
@@ -38,7 +80,11 @@
             </td>
           </tr>
         </tbody>
-      </table>
+        </table>
+      </div>
+      <div v-if="filteredUsers.length === 0" class="text-center p-8">
+        <p>{{ userStore.users.length === 0 ? 'No users found.' : 'No users match your filters.' }}</p>
+      </div>
     </div>
 
     <UserFormModal
@@ -51,13 +97,44 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useUserStore } from '../stores/user.store';
 import UserFormModal from '../components/UserFormModal.vue';
 
 const userStore = useUserStore();
 const isModalOpen = ref(false);
 const selectedUser = ref<any | null>(null);
+const searchQuery = ref('');
+const roleFilter = ref('');
+const statusFilter = ref('');
+
+const filteredUsers = computed(() => {
+  let filtered = userStore.users;
+
+  // Search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(user =>
+      user.username.toLowerCase().includes(query) ||
+      user.email?.toLowerCase().includes(query) ||
+      user.firstName?.toLowerCase().includes(query) ||
+      user.lastName?.toLowerCase().includes(query)
+    );
+  }
+
+  // Role filter
+  if (roleFilter.value) {
+    filtered = filtered.filter(user => user.role === roleFilter.value);
+  }
+
+  // Status filter
+  if (statusFilter.value) {
+    const isActive = statusFilter.value === 'true';
+    filtered = filtered.filter(user => user.isActive === isActive);
+  }
+
+  return filtered;
+});
 
 onMounted(() => {
   userStore.fetchUsers();
