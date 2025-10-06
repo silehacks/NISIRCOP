@@ -4,38 +4,27 @@ server:
 spring:
   application:
     name: api-gateway
+  profiles:
+    active: docker
   cloud:
     gateway:
       discovery:
         locator:
-          enabled: false # Disable automatic routing based on service ID
+          enabled: false
           lower-case-service-id: true
-      routes:
-        - id: auth-service
-          uri: lb://auth-service
-          predicates:
-            - Path=/auth/**
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/users/**
-        - id: incident-service
-          uri: lb://incident-service
-          predicates:
-            - Path=/incidents/**
-        - id: geographic-service
-          uri: lb://geographic-service
-          predicates:
-            - Path=/geo/**
-        - id: analytics-service
-          uri: lb://analytics-service
-          predicates:
-            - Path=/analytics/**
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
 
 eureka:
   client:
     service-url:
       defaultZone: http://discovery-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
 
 jwt:
   secret: ${JWT_SECRET}
