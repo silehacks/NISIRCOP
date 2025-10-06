@@ -1,7 +1,11 @@
 package com.nisircop.le.authservice.service;
 
 import com.nisircop.le.authservice.client.UserServiceClient;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.nisircop.le.authservice.dto.UserResponseDto;
+import com.nisircop.le.authservice.dto.ValidateRequest;
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,10 +17,10 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 
 @Component
+@RequiredArgsConstructor
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-    @Autowired
-    private UserServiceClient userServiceClient;
+    private final UserServiceClient userServiceClient;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -24,20 +28,29 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String password = authentication.getCredentials().toString();
 
         try {
-            UserServiceClient.UserDTO userDTO = userServiceClient.validateUser(new UserServiceClient.ValidateRequest(username, password));
+            ValidateRequest validateRequest = new ValidateRequest(username, password);
+            ResponseEntity<UserResponseDto> responseEntity = userServiceClient.validateUser(validateRequest);
 
-            if (userDTO != null) {
-                return new UsernamePasswordAuthenticationToken(
-                        username,
-                        password,
-                        Collections.singleton(new SimpleGrantedAuthority("ROLE_" + userDTO.role()))
-                );
-            } else {
-                throw new BadCredentialsException("Invalid username or password");
+            if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.hasBody()) {
+                UserResponseDto userDto = responseEntity.getBody();
+                if (userDto != null && userDto.getRole() != null) {
+                    // Store the entire DTO as the principal for later use
+                    return new UsernamePasswordAuthenticationToken(
+                            userDto,
+                            password,
+                            Collections.singleton(new SimpleGrantedAuthority("ROLE_" + userDto.getRole()))
+                    );
+                }
             }
-        } catch (Exception e) {
-            // This will catch Feign exceptions if the user-service returns 401
+            // If the response was not successful or had no body, credentials are bad
+            throw new BadCredentialsException("Invalid username or password");
+
+        } catch (FeignException e) {
+            // If the user-service returns a non-2xx status (like 401), it will throw a FeignException
             throw new BadCredentialsException("Invalid username or password", e);
+        } catch (Exception e) {
+            // Catch any other unexpected exceptions
+            throw new BadCredentialsException("Authentication service encountered an error", e);
         }
     }
 
