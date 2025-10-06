@@ -1,6 +1,7 @@
 package com.nisircop.le.authservice.service;
 
 import com.nisircop.le.authservice.client.UserServiceClient;
+import com.nisircop.le.authservice.dto.UserDTO;
 import com.nisircop.le.authservice.dto.UserResponseDto;
 import com.nisircop.le.authservice.dto.ValidateRequest;
 import feign.FeignException;
