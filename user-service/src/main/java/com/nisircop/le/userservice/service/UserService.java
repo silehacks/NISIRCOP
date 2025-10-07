@@ -4,6 +4,7 @@ import com.nisircop.le.userservice.dto.UserCreateRequest;
 import com.nisircop.le.userservice.dto.UserResponseDto;
 import com.nisircop.le.userservice.dto.ValidateRequest;
 import com.nisircop.le.userservice.exception.ResourceNotFoundException;
+import com.nisircop.le.userservice.exception.UserServiceException;
 import com.nisircop.le.userservice.model.User;
 import com.nisircop.le.userservice.model.UserProfile;
 import com.nisircop.le.userservice.model.UserRole;
@@ -132,7 +133,7 @@ public class UserService {
             return;
         }
         
-        throw new RuntimeException("User does not have permission to update this user.");
+        throw new UserServiceException("User does not have permission to update this user.", "INSUFFICIENT_PERMISSIONS");
     }
 
     private void validateUserDeletePermission(Long deleterId, User targetUser) {
@@ -151,7 +152,7 @@ public class UserService {
             return;
         }
         
-        throw new RuntimeException("User does not have permission to delete this user.");
+        throw new UserServiceException("User does not have permission to delete this user.", "INSUFFICIENT_PERMISSIONS");
     }
 
     private UserResponseDto mapToUserResponseDto(User user) {

@@ -44,9 +44,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (token.value) {
       // Here you might want to add a call to a backend endpoint
       // to verify the token is still valid. For now, we'll assume it is.
-      console.log('User is authenticated from local storage.')
+      // User session restored from local storage
     } else {
-      console.log('No user session found in local storage.')
+      // No user session found
     }
   }
 

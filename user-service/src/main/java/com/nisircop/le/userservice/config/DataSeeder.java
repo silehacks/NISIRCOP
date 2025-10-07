@@ -14,14 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class DataSeeder implements CommandLineRunner {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserProfileRepository userProfileRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public DataSeeder(UserRepository userRepository, 
+                     UserProfileRepository userProfileRepository,
+                     PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.userProfileRepository = userProfileRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     @Transactional
@@ -36,7 +39,13 @@ public class DataSeeder implements CommandLineRunner {
         User superUser = new User();
         superUser.setId(1L);
         superUser.setUsername("admin");
-        superUser.setPassword(passwordEncoder.encode("admin123"));
+        // TODO: SECURITY - Change default password in production!
+        String defaultPassword = System.getenv("DEFAULT_ADMIN_PASSWORD");
+        if (defaultPassword == null) {
+            defaultPassword = "admin123"; // Development only
+            System.err.println("WARNING: Using default password. Set DEFAULT_ADMIN_PASSWORD env var for production!");
+        }
+        superUser.setPassword(passwordEncoder.encode(defaultPassword));
         superUser.setEmail("admin@nisircop.le");
         superUser.setRole(UserRole.SUPER_USER);
         superUser.setActive(true);
@@ -55,7 +64,7 @@ public class DataSeeder implements CommandLineRunner {
         User policeStation = new User();
         policeStation.setId(2L);
         policeStation.setUsername("station_commander");
-        policeStation.setPassword(passwordEncoder.encode("admin123"));
+        policeStation.setPassword(passwordEncoder.encode(defaultPassword));
         policeStation.setEmail("station@nisircop.le");
         policeStation.setRole(UserRole.POLICE_STATION);
         policeStation.setActive(true);
@@ -75,7 +84,7 @@ public class DataSeeder implements CommandLineRunner {
         User officer = new User();
         officer.setId(3L);
         officer.setUsername("officer_001");
-        officer.setPassword(passwordEncoder.encode("admin123"));
+        officer.setPassword(passwordEncoder.encode(defaultPassword));
         officer.setEmail("officer001@nisircop.le");
         officer.setRole(UserRole.OFFICER);
         officer.setActive(true);
