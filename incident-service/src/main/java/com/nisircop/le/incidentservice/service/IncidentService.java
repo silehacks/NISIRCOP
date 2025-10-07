@@ -24,12 +24,17 @@ import java.util.Optional;
 @Service
 public class IncidentService {
 
-    @Autowired
-    private IncidentRepository incidentRepository;
-    @Autowired
-    private GeoServiceClient geoServiceClient;
-    @Autowired
-    private UserServiceClient userServiceClient;
+    private final IncidentRepository incidentRepository;
+    private final GeoServiceClient geoServiceClient;
+    private final UserServiceClient userServiceClient;
+
+    public IncidentService(IncidentRepository incidentRepository,
+                          GeoServiceClient geoServiceClient,
+                          UserServiceClient userServiceClient) {
+        this.incidentRepository = incidentRepository;
+        this.geoServiceClient = geoServiceClient;
+        this.userServiceClient = userServiceClient;
+    }
 
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
@@ -92,7 +97,7 @@ public class IncidentService {
     @Transactional
     public void deleteIncident(Long id, Long userId) {
         Incident incident = incidentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Incident not found with id: " + id));
+                .orElseThrow(() -> new IncidentServiceException("Incident not found with id: " + id, "INCIDENT_NOT_FOUND"));
         validateUserPermission(userId, incident, "delete");
         incidentRepository.delete(incident);
     }
@@ -107,7 +112,7 @@ public class IncidentService {
         ResponseEntity<Boolean> validationResponse = geoServiceClient.validatePointInBoundary(validationRequest);
 
         if (validationResponse.getBody() == null || !validationResponse.getBody()) {
-            throw new RuntimeException("Incident location is outside the user's assigned boundary.");
+            throw new IncidentServiceException("Incident location is outside the user's assigned boundary.", "LOCATION_OUT_OF_BOUNDS");
         }
     }
 
@@ -125,6 +130,6 @@ public class IncidentService {
             if (officerIds.contains(incident.getReportedBy())) return;
         }
 
-        throw new RuntimeException("User does not have permission to " + action + " this incident.");
+        throw new IncidentServiceException("User does not have permission to " + action + " this incident.", "INSUFFICIENT_PERMISSIONS");
     }
 }

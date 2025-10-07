@@ -23,7 +23,11 @@ app = FastAPI(title="NISIRCOP Analytics Service", version="1.0.0")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:8080",
+        "https://your-production-domain.com"  # Add your production domain
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
