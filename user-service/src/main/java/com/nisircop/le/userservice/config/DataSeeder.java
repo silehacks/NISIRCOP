@@ -34,6 +34,7 @@ public class DataSeeder implements CommandLineRunner {
     private void createUsers() {
         // Create SUPER_USER
         User superUser = new User();
+        superUser.setId(1L);
         superUser.setUsername("admin");
         superUser.setPassword(passwordEncoder.encode("admin123"));
         superUser.setEmail("admin@nisircop.le");
@@ -42,6 +43,7 @@ public class DataSeeder implements CommandLineRunner {
         userRepository.save(superUser);
 
         UserProfile superUserProfile = new UserProfile();
+        superUserProfile.setId(1L);
         superUserProfile.setFirstName("System");
         superUserProfile.setLastName("Administrator");
         superUserProfile.setPhone("+251-11-123-4567");
@@ -51,6 +53,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // Create POLICE_STATION
         User policeStation = new User();
+        policeStation.setId(2L);
         policeStation.setUsername("station_commander");
         policeStation.setPassword(passwordEncoder.encode("admin123"));
         policeStation.setEmail("station@nisircop.le");
@@ -60,6 +63,7 @@ public class DataSeeder implements CommandLineRunner {
         userRepository.save(policeStation);
 
         UserProfile stationProfile = new UserProfile();
+        stationProfile.setId(2L);
         stationProfile.setFirstName("Station");
         stationProfile.setLastName("Commander");
         stationProfile.setPhone("+251-11-234-5678");
@@ -69,6 +73,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // Create OFFICER
         User officer = new User();
+        officer.setId(3L);
         officer.setUsername("officer_001");
         officer.setPassword(passwordEncoder.encode("admin123"));
         officer.setEmail("officer001@nisircop.le");
@@ -78,6 +83,7 @@ public class DataSeeder implements CommandLineRunner {
         userRepository.save(officer);
 
         UserProfile officerProfile = new UserProfile();
+        officerProfile.setId(3L);
         officerProfile.setFirstName("John");
         officerProfile.setLastName("Doe");
         officerProfile.setPhone("+251-11-345-6789");

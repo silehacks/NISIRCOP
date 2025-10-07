@@ -4,10 +4,8 @@ server:
 spring:
   application:
     name: auth-service
-  profiles:
-    active: docker
   datasource:
-    url: jdbc:sqlite:./data/nisircop.db
+    url: jdbc:sqlite:/app/auth-service/data/nisircop.db
     driver-class-name: org.sqlite.JDBC
   jpa:
     hibernate:
@@ -20,7 +18,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://discovery-server:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
 

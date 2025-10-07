@@ -1,12 +1,43 @@
-/target/
-/data/
-*.log
-jules-scratch/
-node_modules/
-/frontend/dist/
-/frontend/node_modules/
-/backend_output.log
-/npm_output.log
+# Maven
+target/
+*.jar
+*.war
+*.ear
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# IntelliJ
 .idea/
 *.iml
+*.iws
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Node
+node_modules/
+dist/
+.npm/
+
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+*.egg-info/
+
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
