@@ -13,8 +13,6 @@ eureka:
 spring:
   application:
     name: discovery-server
-  profiles:
-    active: docker
 
 management:
   endpoints:

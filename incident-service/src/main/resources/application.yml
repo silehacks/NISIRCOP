@@ -4,22 +4,24 @@ server:
 spring:
   application:
     name: incident-service
-  profiles:
-    active: dev # Default to dev profile for local runs
+  datasource:
+    url: jdbc:postgresql://localhost:5432/nisircop_incident
+    username: your_username
+    password: your_password
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.community.dialect.SQLiteDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
 
 # Default Eureka configuration for local development
 eureka:
   client:
     service-url:
-      defaultZone: http://discovery-server:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
 
@@ -36,8 +38,3 @@ logging:
   level:
     com.nisircop: INFO
     org.hibernate.SQL: WARN
-
----
-  datasource:
-    url: jdbc:sqlite:./data/nisircop.db
-    driver-class-name: org.sqlite.JDBC
