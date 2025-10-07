@@ -12,11 +12,25 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.community.dialect.SQLiteDialect
-        format_sql: true
+        format_sql: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.nisircop: INFO
+    org.hibernate.SQL: WARN
 
 eureka:
   client:

@@ -15,9 +15,20 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
+            allowedOrigins: 
+              - "http://localhost:3000"
+              - "http://localhost:80" 
+              - "http://localhost:8080"
+            allowedMethods: 
+              - "GET"
+              - "POST"
+              - "PUT"
+              - "DELETE"
+              - "OPTIONS"
+            allowedHeaders: 
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
 
 eureka:
   client:
