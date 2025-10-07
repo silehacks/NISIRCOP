@@ -12,7 +12,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.community.dialect.SQLiteDialect
@@ -28,3 +28,18 @@ jwt:
   secret: ${JWT_SECRET}
   expiration:
     ms: 86400000 # 24 hours
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.nisircop: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
