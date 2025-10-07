@@ -31,6 +31,13 @@ NISIRCOP-LE (NISIR Common Operational Picture For Law Enforcement) is a producti
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
+| **Frontend** | Vue.js 3, TypeScript, Vite | Modern reactive user interface |
+| **UI Framework** | Tailwind CSS | Responsive design system |
+| **State Management** | Pinia | Frontend state management |
+| **Routing** | Vue Router | Client-side navigation |
+| **HTTP Client** | Axios | API communication |
+| **Maps** | Leaflet | Geographic visualization |
+| **Charts** | Chart.js | Data visualization |
 | **Backend** | Java 17, Spring Boot 3.2+ | Microservices foundation |
 | **Analytics** | Python 3.11, FastAPI | High-performance data processing |
 | **Database** | SQLite (dev), PostgreSQL (prod) | Data persistence |
@@ -45,7 +52,8 @@ NISIRCOP-LE (NISIR Common Operational Picture For Law Enforcement) is a producti
 ```
 ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │◄───┤  API Gateway    │
-│   (Removed)     │    │   Port: 8080    │
+│   (Vue.js)      │    │   Port: 8080    │
+│   Port: 3000    │    │                 │
 └─────────────────┘    └─────────────────┘
                                 │
                        ┌─────────────────┐
@@ -100,12 +108,20 @@ NISIRCOP-LE (NISIR Common Operational Picture For Law Enforcement) is a producti
 
 ### Prerequisites
 
-Ensure your system has the following installed:
-
+#### For Docker Deployment
 - **Docker Engine** 20.10+ and **Docker Compose** 2.0+
 - **Git** for cloning the repository
 - **Minimum 4GB RAM** and **2 CPU cores** for optimal performance
 - **10GB free disk space** for containers and data
+
+#### For Local Development (No Docker)
+- **Java 17+** (OpenJDK 17 or later)
+- **Maven 3.6+** for building Java services
+- **Python 3.11+** for Analytics Service
+- **Node.js 18+** and **npm** for Frontend
+- **Git** for cloning the repository
+- **Minimum 8GB RAM** and **4 CPU cores** recommended
+- **SQLite** (usually pre-installed on most systems)
 
 ### Installation
 
@@ -138,7 +154,9 @@ chmod 755 data
 
 ### Deployment Options
 
-#### Option A: Development Environment
+#### Option A: Docker Deployment (Recommended for Production)
+
+**Development Environment:**
 ```bash
 # Start all services with development settings
 docker-compose up --build -d
@@ -147,7 +165,7 @@ docker-compose up --build -d
 docker-compose logs -f
 ```
 
-#### Option B: Production Environment
+**Production Environment:**
 ```bash
 # Start with production optimizations
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
@@ -156,7 +174,7 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 docker-compose ps
 ```
 
-#### Option C: Individual Service Development
+**Individual Service Development:**
 ```bash
 # Start only core infrastructure
 docker-compose up -d discovery-server
@@ -164,6 +182,132 @@ docker-compose up -d discovery-server
 # Scale specific services
 docker-compose up -d auth-service user-service
 ```
+
+#### Option B: Local Development (No Docker)
+
+This option allows you to run the full stack locally without Docker, which is useful for:
+- Development and debugging
+- Systems without Docker support
+- Testing individual services
+- Learning the application architecture
+
+**Prerequisites Setup:**
+
+1. **Install Java (if not installed):**
+```bash
+# Ubuntu/Debian
+sudo apt-get update && sudo apt-get install -y openjdk-17-jdk maven
+
+# macOS
+brew install openjdk@17 maven
+
+# Verify installation
+java -version
+mvn -version
+```
+
+2. **Install Python dependencies:**
+```bash
+# Ubuntu/Debian
+sudo apt-get install -y python3 python3-pip
+
+# macOS
+brew install python3
+
+# Install Analytics Service dependencies
+cd analytics-service
+pip3 install -r requirements.txt --user
+cd ..
+```
+
+3. **Install Node.js and Frontend dependencies:**
+```bash
+# Ubuntu/Debian
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# macOS
+brew install node
+
+# Install Frontend dependencies
+cd frontend
+npm install
+cd ..
+```
+
+**Running Services Locally:**
+
+NISIRCOP-LE consists of 8 services that must be started in a specific order. You'll need **8 separate terminal windows/tabs**.
+
+> **Important:** Services depend on Eureka for discovery. Start Discovery Server first and wait ~30 seconds before starting other services.
+
+**Service Startup Order:**
+
+1. **Terminal 1 - Discovery Server (Port 8761):**
+```bash
+./scripts/run-discovery-server.sh
+# Wait for "Eureka Server started" message (~30 seconds)
+```
+
+2. **Terminal 2 - API Gateway (Port 8080):**
+```bash
+./scripts/run-api-gateway.sh
+```
+
+3. **Terminal 3 - Auth Service (Port 8081):**
+```bash
+./scripts/run-auth-service.sh
+```
+
+4. **Terminal 4 - User Service (Port 8085):**
+```bash
+./scripts/run-user-service.sh
+```
+
+5. **Terminal 5 - Geographic Service (Port 8084):**
+```bash
+./scripts/run-geographic-service.sh
+```
+
+6. **Terminal 6 - Incident Service (Port 8083):**
+```bash
+./scripts/run-incident-service.sh
+```
+
+7. **Terminal 7 - Analytics Service (Port 8086):**
+```bash
+./scripts/run-analytics-service.sh
+```
+
+8. **Terminal 8 - Frontend (Port 3000):**
+```bash
+./scripts/run-frontend.sh
+```
+
+**Quick Start Helper:**
+```bash
+# Display startup instructions
+./scripts/start-all-services.sh
+```
+
+**Service Health Checks:**
+```bash
+# Check Eureka Dashboard (see all registered services)
+curl http://localhost:8761
+
+# Check individual service health
+curl http://localhost:8080/actuator/health  # API Gateway
+curl http://localhost:8081/actuator/health  # Auth Service
+curl http://localhost:8085/actuator/health  # User Service
+curl http://localhost:8084/actuator/health  # Geographic Service
+curl http://localhost:8083/actuator/health  # Incident Service
+curl http://localhost:8086/health           # Analytics Service
+```
+
+**Access Points:**
+- **Frontend Application:** http://localhost:3000
+- **API Gateway:** http://localhost:8080
+- **Eureka Dashboard:** http://localhost:8761
 
 ### 4. Verify Deployment
 
@@ -325,6 +469,78 @@ docker-compose up -d --scale incident-service=2
 - **Connection Pooling**: HikariCP optimization
 - **Indexing Strategy**: Geographic and temporal indexes
 
+## 🎨 Frontend Application
+
+### Features
+
+The Vue.js frontend provides a modern, responsive interface with:
+
+- **🔐 Authentication & Authorization**: Secure login with JWT token management
+- **📊 Dashboard**: Real-time crime statistics and visualizations
+- **🗺️ Interactive Maps**: Geospatial incident visualization using Leaflet
+- **📝 Incident Reporting**: Intuitive form-based incident creation
+- **📈 Analytics Charts**: Data visualization with Chart.js
+- **🎯 Role-Based UI**: Adaptive interface based on user permissions
+- **📱 Responsive Design**: Mobile-first design using Tailwind CSS
+
+### Frontend Architecture
+
+```
+frontend/
+├── src/
+│   ├── components/       # Reusable Vue components
+│   │   └── IncidentForm.vue
+│   ├── views/           # Page-level components
+│   │   ├── Login.vue
+│   │   └── Dashboard.vue
+│   ├── stores/          # Pinia state management
+│   │   ├── auth.store.ts
+│   │   └── incident.store.ts
+│   ├── services/        # API integration
+│   │   ├── apiClient.ts
+│   │   ├── auth.service.ts
+│   │   └── incident.service.ts
+│   ├── router/          # Vue Router configuration
+│   │   └── index.ts
+│   ├── App.vue          # Root component
+│   └── main.ts          # Application entry point
+├── public/              # Static assets
+├── index.html           # HTML template
+├── vite.config.ts       # Vite configuration
+├── tailwind.config.js   # Tailwind CSS configuration
+└── package.json         # Dependencies
+```
+
+### Development Workflow
+
+**Local Development:**
+```bash
+cd frontend
+npm install
+npm run dev
+# Opens at http://localhost:3000
+```
+
+**Production Build:**
+```bash
+npm run build
+# Output in dist/ directory
+```
+
+**Preview Production Build:**
+```bash
+npm run preview
+```
+
+### Environment Configuration
+
+Create a `.env.local` file for local development:
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+For Docker deployment, the API proxy is configured automatically in `vite.config.ts`.
+
 ## 🔍 API Documentation
 
 ### Core Endpoints
@@ -419,6 +635,39 @@ mvn integration-test
 ## 🔧 Troubleshooting
 
 ### Common Issues
+
+#### Frontend Connection Issues
+```bash
+# Issue: Frontend can't connect to backend
+# Solution 1: Verify API Gateway is running
+curl http://localhost:8080/actuator/health
+
+# Solution 2: Check CORS configuration
+# Ensure allowedOrigins in api-gateway/src/main/resources/application.yml includes:
+# - http://localhost:3000
+
+# Solution 3: Clear browser cache and cookies
+# Press Ctrl+Shift+Delete in browser
+
+# Solution 4: Check frontend .env.local file
+cat frontend/.env.local
+# Should contain: VITE_API_URL=http://localhost:8080
+```
+
+#### Frontend Build Issues
+```bash
+# Issue: npm install fails
+# Solution: Clear npm cache
+cd frontend
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+
+# Issue: TypeScript compilation errors
+# Solution: Use build without type checking
+npm run build
+# Instead of npm run build:check
+```
 
 #### Service Discovery Problems
 ```bash
@@ -545,9 +794,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Core microservices architecture
 - ✅ Role-based access control
 - ✅ Crime incident reporting
+- ✅ Vue.js frontend application
+- ✅ Interactive maps and visualizations
 - ✅ Basic analytics dashboard
 - ✅ SQLite development setup
 - ✅ Docker containerization
+- ✅ Local development support (no Docker required)
 
 ### Future Enhancements (v2.0.0)
 - 🔄 PostgreSQL + PostGIS migration
