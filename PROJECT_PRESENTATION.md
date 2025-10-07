@@ -27,560 +27,116 @@ A modern, scalable microservices platform that provides:
 
 ## 🏗️ System Architecture
 
-### Microservices Overview
+The system is built on a microservices architecture designed for scalability and maintainability. For a detailed breakdown of the architecture, technology stack, and design principles, please refer to the main `DOCUMENTATION.md` file.
 
-```
-┌─────────────────────────────────────────────────────┐
-│              API GATEWAY (Port 8080)                 │
-│   • Single entry point for all requests             │
-│   • JWT token validation                            │
-│   • Request routing to services                     │
-│   • CORS configuration                              │
-└──────────────────┬──────────────────────────────────┘
-                   │
-      ┌────────────┼────────────┐
-      │            │            │
-      ▼            ▼            ▼
-┌──────────┐  ┌──────────┐  ┌──────────┐
-│Discovery │  │   Auth   │  │   User   │
-│ Server   │  │ Service  │  │ Service  │
-│ (8761)   │  │  (8081)  │  │  (8085)  │
-└──────────┘  └──────────┘  └──────────┘
-                   
-      ┌────────────┼────────────┐
-      │            │            │
-      ▼            ▼            ▼
-┌──────────┐  ┌──────────┐  ┌──────────┐
-│Geographic│  │ Incident │  │Analytics │
-│ Service  │  │ Service  │  │ Service  │
-│  (8084)  │  │  (8083)  │  │  (8086)  │
-└──────────┘  └──────────┘  └──────────┘
-```
-
-### Technology Stack
-
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Backend Services** | Java 17 + Spring Boot 3.2 | Core microservices |
-| **Analytics Engine** | Python 3.13 + FastAPI | High-performance data analysis |
-| **Service Discovery** | Netflix Eureka | Dynamic service registration |
-| **API Gateway** | Spring Cloud Gateway | Routing & authentication |
-| **Security** | JWT + Spring Security | Stateless authentication |
-| **Database** | SQLite (dev) / PostgreSQL (prod) | Data persistence |
-| **Geospatial** | JTS Topology Suite + PostGIS | Geographic operations |
-| **Containerization** | Docker + Docker Compose | Easy deployment |
+**High-Level Components:**
+-   **Frontend**: A Vue.js 3 single-page application.
+-   **Backend**: A set of Java 17 and Python 3.11 microservices.
+-   **Database**: A PostgreSQL database with PostGIS for geospatial data.
+-   **Infrastructure**: Includes a service discovery server (Eureka) and an API Gateway.
 
 ---
 
 ## 👥 User Roles & Hierarchical Access Control
 
-### 3-Tier Role Hierarchy
+The system implements a three-tier role-based access control (RBAC) model to mirror the command structure of law enforcement agencies.
 
-```
-┌─────────────────────────────────────────────┐
-│         SUPER_USER (Administrator)          │
-│  • Full system access                       │
-│  • Create police station accounts           │
-│  • View ALL incidents across jurisdictions  │
-│  • Bypass geographic boundaries             │
-│  • System-wide analytics                    │
-└─────────────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────┐
-│      POLICE_STATION (Station Commander)     │
-│  • Manage station officers                  │
-│  • Create OFFICER accounts                  │
-│  • View all station incidents               │
-│  • Edit/delete officer incidents            │
-│  • Station-level analytics                  │
-│  • Geographic boundary enforced             │
-└─────────────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────┐
-│            OFFICER (Field Officer)          │
-│  • Report new incidents                     │
-│  • View OWN incidents only                  │
-│  • Update OWN incidents                     │
-│  • Cannot create users                      │
-│  • Geographic boundary enforced             │
-└─────────────────────────────────────────────┘
-```
+-   **SUPER_USER**: Has full system access. Can manage all users and view all data.
+-   **POLICE_STATION**: Manages officers and incidents within their assigned geographic area.
+-   **OFFICER**: Can report incidents and only view their own data.
 
-### Permission Matrix
-
-| Action | SUPER_USER | POLICE_STATION | OFFICER |
-|--------|:----------:|:--------------:|:-------:|
-| **User Management** |
-| Create SUPER_USER | ✅ | ❌ | ❌ |
-| Create POLICE_STATION | ✅ | ❌ | ❌ |
-| Create OFFICER | ✅ | ✅ | ❌ |
-| View all users | ✅ | ✅ (limited) | ❌ |
-| Update any user | ✅ | ✅ (own officers) | ❌ |
-| Delete users | ✅ | ✅ (own officers) | ❌ |
-| **Incident Management** |
-| Create incident | ✅ | ✅ | ✅ |
-| View all incidents | ✅ | ❌ | ❌ |
-| View station incidents | ✅ | ✅ | ❌ |
-| View own incidents | ✅ | ✅ | ✅ |
-| Update any incident | ✅ | ❌ | ❌ |
-| Update station incidents | ✅ | ✅ | ❌ |
-| Update own incident | ✅ | ✅ | ✅ |
-| Delete any incident | ✅ | ❌ | ❌ |
-| Delete station incidents | ✅ | ✅ | ❌ |
-| Delete own incident | ✅ | ✅ | ✅ |
-| **Geographic Access** |
-| Report anywhere | ✅ | ❌ | ❌ |
-| Report in boundary only | ✅ | ✅ | ✅ |
+For a detailed permission matrix and explanation of the hierarchy, please see the main `DOCUMENTATION.md`.
 
 ---
 
 ## 🔑 Key Features
 
-### 1. Secure Authentication System
-- **JWT Token-Based Authentication**: Stateless, scalable security
-- **Password Encryption**: BCrypt hashing for all passwords
-- **Token Expiration**: Automatic session timeout
-- **Role Injection**: User role embedded in JWT for authorization
-
-**Default Users:**
-- **Admin**: `admin` / `admin123` (SUPER_USER)
-- **Station Commander**: `station_commander` / `admin123` (POLICE_STATION)
-- **Officer**: `officer_001` / `admin123` (OFFICER)
-
-### 2. Hierarchical User Management
-- **3-Tier User Hierarchy**: SUPER_USER → POLICE_STATION → OFFICER
-- **Creator Tracking**: Each user knows who created them
-- **Permission Enforcement**: Cannot modify users outside hierarchy
-- **Profile Management**: Full user profiles with badge numbers
-
-**User Profile Fields:**
-- Username (unique)
-- Email (unique)
-- Role (SUPER_USER, POLICE_STATION, OFFICER)
-- First Name & Last Name
-- Phone Number
-- Badge Number
-- Created By (tracks creator)
-
-### 3. Incident Reporting System
-- **Real-time Incident Reporting**: Officers can report incidents instantly
-- **Geographic Validation**: Automatic boundary checking
-- **Rich Incident Data**:
-  - Title & Description
-  - Incident Type (THEFT, BURGLARY, ASSAULT, etc.)
-  - Priority Level (LOW, MEDIUM, HIGH, CRITICAL)
-  - GPS Coordinates (Latitude/Longitude)
-  - Timestamp (automatic)
-  - Reporter tracking
-
-**Incident Types Supported:**
-- Theft
-- Burglary
-- Assault
-- Vandalism
-- Drug-related crimes
-- Traffic incidents
-- Homicide
-- Robbery
-- Domestic violence
-- Other (customizable)
-
-### 4. Geographic Boundary System
-- **Geospatial Validation**: JTS Topology Suite for point-in-polygon checks
-- **Automatic Enforcement**: Officers can only report in their assigned area
-- **SUPER_USER Bypass**: Administrators can report anywhere
-- **Future-Ready**: PostGIS integration ready for advanced analysis
-
-**Geographic Features:**
-- Point-in-polygon validation
-- Boundary storage per user
-- Coordinate validation
-- Support for complex polygons
-
-### 5. Analytics Dashboard (Python FastAPI)
-- **Incident Count by Type**: Bar chart data
-- **Incident Count by Priority**: Priority distribution
-- **Geographic Heatmap Data**: Latitude/longitude for all incidents
-- **Real-time Updates**: Live data from shared database
-
-**Analytics Endpoints:**
-- `/analytics/incidents/count-by-type` - Crime type statistics
-- `/analytics/incidents/count-by-priority` - Priority breakdown
-- `/analytics/incidents/locations` - Map coordinates
-
-### 6. Service Discovery (Eureka)
-- **Dynamic Service Registration**: Services register themselves on startup
-- **Health Monitoring**: Automatic health checks
-- **Load Balancing Ready**: Multiple instances supported
-- **Fault Tolerance**: Services can be restarted independently
+-   **Secure, Role-Based Authentication**: Using JWT for stateless and secure access.
+-   **Hierarchical User Management**: Enforces a strict chain of command for user administration.
+-   **Real-time Incident Reporting**: With GPS coordinates and structured data.
+-   **Geographic Boundary Validation**: Ensures officers report incidents within their jurisdiction.
+-   **Live Analytics Dashboard**: Provides real-time insights into crime data.
 
 ---
 
-## 🔐 Security Implementation
+## 🔐 Security & Database
 
-### Authentication Flow
-
-```
-1. User Login Request
-   POST /auth/login
-   { username, password }
-          ↓
-2. Auth Service validates credentials
-   • Calls User Service
-   • Verifies password (BCrypt)
-          ↓
-3. JWT Token Generation
-   • Includes userId, username, role
-   • Signed with secret key
-   • Sets expiration time
-          ↓
-4. Token Returned to Client
-   { token, userId, username, role }
-          ↓
-5. Client includes token in subsequent requests
-   Authorization: Bearer <token>
-          ↓
-6. API Gateway validates token
-   • Extracts userId and role
-   • Injects as headers (X-User-Id, X-User-Role)
-          ↓
-7. Backend services use headers for authorization
-```
-
-### Security Features Implemented
-
-✅ **Password Security**
-- BCrypt encryption (strength 10)
-- Passwords never returned in API responses
-- Secure password validation
-
-✅ **JWT Security**
-- Token-based stateless authentication
-- Automatic expiration
-- Role and user ID embedded
-- Signature verification
-
-✅ **API Security**
-- CORS configuration
-- Request validation
-- Error sanitization
-- Unauthorized access blocking
-
-✅ **Role-Based Authorization**
-- Permission checks on every request
-- Hierarchical access control
-- Resource ownership validation
+The application's security is built on JWT and Spring Security, with a PostgreSQL database for data persistence. For detailed information on the authentication flow, security features, and database schema, please refer to the main `DOCUMENTATION.md`.
 
 ---
 
-## 📊 Database Design
+## 🚀 Local Development
 
-### Core Entities
+The project is configured for local development without Docker. This involves:
+1.  Installing prerequisites (Java, Node, Python, PostgreSQL with PostGIS).
+2.  Configuring environment variables in a `.env` file.
+3.  Building each service with Maven and npm.
+4.  Starting all services in the correct order.
 
-#### Users Table
-```sql
-users
-├── id (PRIMARY KEY)
-├── username (UNIQUE)
-├── password (ENCRYPTED)
-├── email (UNIQUE)
-├── role (ENUM: SUPER_USER, POLICE_STATION, OFFICER)
-├── created_by (FOREIGN KEY → users.id)
-└── is_active (BOOLEAN)
-```
-
-#### User Profiles Table
-```sql
-user_profiles
-├── id (PRIMARY KEY)
-├── user_id (FOREIGN KEY → users.id)
-├── first_name
-├── last_name
-├── phone
-├── badge_number
-└── boundary (GEOMETRY - for geographic service)
-```
-
-#### Incidents Table
-```sql
-incidents
-├── id (PRIMARY KEY)
-├── title
-├── description (TEXT)
-├── incident_type
-├── priority
-├── location (POINT GEOMETRY)
-├── latitude (FLOAT)
-├── longitude (FLOAT)
-├── reported_by (FOREIGN KEY → users.id)
-└── occurred_at (TIMESTAMP)
-```
-
-### Database Features
-- **Automatic Schema Creation**: Hibernate DDL auto-update
-- **Geospatial Support**: PostGIS-ready with JTS
-- **Transaction Management**: ACID compliance
-- **Foreign Key Constraints**: Data integrity enforced
-
----
-
-## 🚀 Deployment Architecture
-
-### Docker Compose Setup
-
-```yaml
-Services:
-  - discovery-server (Port 8761)
-  - api-gateway (Port 8080)
-  - auth-service (Port 8081)
-  - user-service (Port 8085)
-  - geographic-service (Port 8084)
-  - incident-service (Port 8083)
-  - analytics-service (Port 8086)
-
-Features:
-  - Automatic service registration
-  - Health checks (30s intervals)
-  - Restart policies
-  - Shared data volume
-  - Inter-service networking
-```
-
-### Starting the System
-
-```bash
-# 1. Create data directory
-mkdir -p data && chmod 755 data
-
-# 2. Configure environment
-cp .env.example .env
-# Edit JWT_SECRET for production
-
-# 3. Build and start all services
-docker-compose up --build -d
-
-# 4. Verify services
-docker-compose ps
-curl http://localhost:8761  # Eureka dashboard
-```
-
-### System Requirements
-- **Docker Engine**: 20.10+
-- **Docker Compose**: 2.0+
-- **RAM**: 4GB minimum (8GB recommended)
-- **CPU**: 2 cores minimum (4 cores recommended)
-- **Disk**: 10GB free space
+For complete, step-by-step instructions, see the **Local Development Setup** guide in the main `DOCUMENTATION.md`.
 
 ---
 
 ## 💡 Use Cases & Demo Scenarios
 
-### Use Case 1: Field Officer Reports Crime
+### Use Case 1: Field Officer Reports a Crime
+An officer logs in, reports a new incident with GPS data, and the system validates the location against their assigned boundary before saving it.
 
-1. **Login as Officer**
-   ```
-   Username: officer_001
-   Password: admin123
-   ```
+### Use Case 2: Station Commander Manages Their Team
+A station commander logs in, creates a new officer account for their station, and monitors all incidents reported by their officers on a map.
 
-2. **Officer sees map of assigned patrol area**
-   - Geographic boundary loaded
-   - Current location displayed
-
-3. **Officer encounters theft incident**
-   - Opens incident report form
-   - Fills in:
-     * Title: "Smartphone Theft at Market"
-     * Type: THEFT
-     * Priority: HIGH
-     * Location: Auto-filled from GPS
-     * Description: Details of the incident
-
-4. **System validates location**
-   - Checks if within officer's boundary
-   - If valid, creates incident
-   - If invalid, shows error message
-
-5. **Incident saved and visible**
-   - Officer can view in "My Incidents"
-   - Station commander can see it
-   - Admin can see it
-   - Analytics updated in real-time
-
-### Use Case 2: Station Commander Manages Team
-
-1. **Login as Station Commander**
-   ```
-   Username: station_commander
-   Password: admin123
-   ```
-
-2. **Create New Officer**
-   - Navigate to "Manage Officers"
-   - Click "Add Officer"
-   - Fill in:
-     * Username: new_officer_002
-     * Email: officer002@nisircop.le
-     * Badge Number: OFF-002
-     * Assign geographic boundary
-
-3. **Monitor Station Incidents**
-   - View all incidents reported by station officers
-   - Filter by date, type, priority
-   - See geographic distribution on map
-
-4. **Update/Delete Incidents**
-   - Can edit any incident from station officers
-   - Can delete incorrect reports
-   - Changes logged for audit
-
-### Use Case 3: Administrator Oversees System
-
-1. **Login as Admin**
-   ```
-   Username: admin
-   Password: admin123
-   ```
-
-2. **Create New Police Station**
-   - Navigate to "User Management"
-   - Create POLICE_STATION account
-   - Assign station geographic boundary
-   - Station commander can now log in
-
-3. **View System-Wide Analytics**
-   - Crime heatmap (all incidents)
-   - Incident type distribution
-   - Priority breakdown
-   - Temporal patterns
-
-4. **Access Control Management**
-   - View all users
-   - Deactivate accounts
-   - Reset passwords
-   - Audit user activities
-
-### Use Case 4: Real-Time Analytics
-
-1. **Data Collection**
-   - Officers report incidents throughout the day
-   - Data stored in shared database
-   - Geographic coordinates captured
-
-2. **Analytics Processing**
-   - Python FastAPI service queries database
-   - Calculates statistics in real-time
-   - Groups by type, priority, location
-
-3. **Visualization Ready**
-   - Frontend (when integrated) calls analytics API
-   - Displays:
-     * Bar charts (incident types)
-     * Pie charts (priority distribution)
-     * Heat maps (crime hotspots)
-     * Trend lines (temporal patterns)
+### Use Case 3: Administrator Oversees the System
+An administrator logs in, views system-wide analytics on a national crime heatmap, and manages user accounts across different stations.
 
 ---
 
 ## 🎨 API Capabilities
 
-### Complete API Reference
-
-#### **Authentication APIs**
-
-**POST** `/auth/login`
-```json
-Request:
-{
-  "username": "admin",
-  "password": "admin123"
-}
-
-Response:
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "userId": 1,
-  "username": "admin",
-  "role": "SUPER_USER"
-}
-```
-
-#### **User Management APIs**
-
-**GET** `/api/users` - Get all users
-**GET** `/api/users/{id}` - Get user by ID
-**GET** `/api/users/username/{username}` - Get user by username
-**POST** `/api/users` - Create new user
-**PUT** `/api/users/{id}` - Update user
-**DELETE** `/api/users/{id}` - Delete user
-**GET** `/api/users/station/{stationId}/officers` - Get station officers
-
-#### **Incident Management APIs**
-
-**POST** `/api/v1/incidents` - Create incident
-```json
-{
-  "title": "Theft Report",
-  "description": "Smartphone stolen from market",
-  "incidentType": "THEFT",
-  "priority": "HIGH",
-  "latitude": 9.0320,
-  "longitude": 38.7469
-}
-```
-
-**GET** `/api/v1/incidents` - Get incidents (role-filtered)
-**GET** `/api/v1/incidents/{id}` - Get specific incident
-**PUT** `/api/v1/incidents/{id}` - Update incident
-**DELETE** `/api/v1/incidents/{id}` - Delete incident
-
-#### **Geographic APIs**
-
-**GET** `/api/geo/boundary/{userId}` - Get user's boundary
-**POST** `/api/geo/validate-point` - Validate location
-```json
-{
-  "userId": 3,
-  "latitude": 9.0320,
-  "longitude": 38.7469,
-  "userRole": "OFFICER"
-}
-```
-
-#### **Analytics APIs**
-
-**GET** `/analytics/incidents/count-by-type` - Crime statistics by type
-**GET** `/analytics/incidents/count-by-priority` - Priority breakdown
-**GET** `/analytics/incidents/locations` - All incident coordinates
+The system exposes a comprehensive RESTful API for all its functionalities. For a detailed API reference with request/response examples, please see the main `DOCUMENTATION.md` file.
 
 ---
 
 ## 📈 System Capabilities
 
-### Performance Characteristics
+-   **Performance**: Designed for low latency, with most operations completing in under 200ms.
+-   **Data Integrity**: Enforced through ACID transactions and foreign key constraints in the PostgreSQL database.
+-   **Monitoring**: Each microservice exposes actuator endpoints (`/actuator/health`, `/actuator/metrics`) for health and performance monitoring.
 
-- **Concurrent Users**: Supports 100+ simultaneous users
-- **Response Time**: < 200ms average for most operations
-- **Data Volume**: Can handle 100,000+ incident records
-- **Service Availability**: 99.9% uptime with proper infrastructure
-- **Scalability**: Horizontal scaling via Docker Compose scaling
+---
 
-### Data Integrity
+## 🔮 Future Enhancements
 
-✅ **ACID Transactions**: Database operations are atomic
-✅ **Foreign Key Constraints**: Referential integrity maintained
-✅ **Cascade Operations**: Related data handled correctly
-✅ **Validation**: Input validation at multiple layers
+-   [ ] **Mobile Application**: Native iOS and Android apps for field reporting.
+-   [ ] **Advanced Analytics**: Crime prediction and hotspot analysis using machine learning.
+-   [ ] **Real-time Notifications**: Push notifications for high-priority incidents.
+-   [ ] **File Attachments**: Support for uploading photos and documents with incident reports.
 
-### Monitoring & Health
+---
 
-All services expose health endpoints:
-- `/actuator/health` - Service health status
-- `/actuator/metrics` - Performance metrics
-- `/actuator/info` - Service information
-- Eureka dashboard - Overall system status
+## 📚 Technical Excellence & Learning Outcomes
+
+This project demonstrates proficiency in modern software engineering practices, including:
+
+-   **Backend Development**: Designing and implementing a complete microservices system with RESTful APIs, a relational database, and robust security.
+-   **Frameworks & Tools**: Using industry-standard frameworks like Spring Boot, Spring Cloud, and FastAPI.
+-   **Software Engineering Principles**: Applying clean architecture principles, design patterns, and role-based access control.
+
+---
+
+## 🎤 Presentation Tips
+
+### Key Points to Emphasize
+1.  **Modern Architecture**: A scalable, maintainable microservices system.
+2.  **Real-World Application**: Solves key challenges in law enforcement.
+3.  **Security-First Design**: With JWT, encryption, and role-based access.
+4.  **Geospatial Intelligence**: Using PostGIS for location-based features.
+
+### Demo Flow Recommendation
+1.  **Start with the Eureka Dashboard** to show all services are registered.
+2.  **Log in with different user roles** to demonstrate the RBAC system.
+3.  **Create a new incident** as an officer to show the reporting workflow and geographic validation.
+4.  **View the incident as a station commander** to show filtered data access.
+5.  **Show the analytics endpoints** to demonstrate the real-time data processing.
 
 ---
 

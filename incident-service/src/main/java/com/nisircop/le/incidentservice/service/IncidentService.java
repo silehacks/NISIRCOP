@@ -2,9 +2,9 @@ package com.nisircop.le.incidentservice.service;
 
 import com.nisircop.le.incidentservice.client.GeoServiceClient;
 import com.nisircop.le.incidentservice.client.PointValidationRequest;
-import com.nisircop.le.incidentservice.client.UserResponse;
 import com.nisircop.le.incidentservice.client.UserServiceClient;
 import com.nisircop.le.incidentservice.dto.IncidentCreateRequest;
+import com.nisircop.le.incidentservice.exception.IncidentServiceException;
 import com.nisircop.le.incidentservice.model.Incident;
 import com.nisircop.le.incidentservice.repository.IncidentRepository;
 import org.locationtech.jts.geom.Coordinate;
@@ -117,7 +117,7 @@ public class IncidentService {
     }
 
     private void validateUserPermission(Long userId, Incident incident, String action) {
-        UserResponse user = Optional.ofNullable(userServiceClient.getUserById(userId))
+        UserServiceClient.UserDTO user = Optional.ofNullable(userServiceClient.getUserById(userId))
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
         String userRole = user.role();
