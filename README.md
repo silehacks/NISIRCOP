@@ -241,54 +241,58 @@ NISIRCOP-LE consists of 8 services that must be started in a specific order. You
 
 > **Important:** Services depend on Eureka for discovery. Start Discovery Server first and wait ~30 seconds before starting other services.
 
+**Database Configuration for Local Development:**
+For local development, the `user-service`, `auth-service`, `geographic-service`, and `incident-service` are configured to use in-memory H2 databases. The `analytics-service` uses a local SQLite database. Ensure that the `data` directories exist within each service's folder as per the configuration in the `application.yml` files.
+
 **Service Startup Order:**
 
-1. **Terminal 1 - Discovery Server (Port 8761):**
-```bash
-./scripts/run-discovery-server.sh
-# Wait for "Eureka Server started" message (~30 seconds)
-```
+1.  **Discovery Server (Port 8761):**
+    ```bash
+    cd discovery-server
+    mvn spring-boot:run
+    ```
 
-2. **Terminal 2 - API Gateway (Port 8080):**
-```bash
-./scripts/run-api-gateway.sh
-```
+2.  **API Gateway (Port 8080):**
+    ```bash
+    cd api-gateway
+    mvn spring-boot:run
+    ```
 
-3. **Terminal 3 - Auth Service (Port 8081):**
-```bash
-./scripts/run-auth-service.sh
-```
+3.  **Auth Service (Port 8081):**
+    ```bash
+    cd auth-service
+    mvn spring-boot:run
+    ```
 
-4. **Terminal 4 - User Service (Port 8085):**
-```bash
-./scripts/run-user-service.sh
-```
+4.  **User Service (Port 8085):**
+    ```bash
+    cd user-service
+    mvn spring-boot:run
+    ```
 
-5. **Terminal 5 - Geographic Service (Port 8084):**
-```bash
-./scripts/run-geographic-service.sh
-```
+5.  **Geographic Service (Port 8084):**
+    ```bash
+    cd geographic-service
+    mvn spring-boot:run
+    ```
 
-6. **Terminal 6 - Incident Service (Port 8083):**
-```bash
-./scripts/run-incident-service.sh
-```
+6.  **Incident Service (Port 8083):**
+    ```bash
+    cd incident-service
+    mvn spring-boot:run
+    ```
 
-7. **Terminal 7 - Analytics Service (Port 8086):**
-```bash
-./scripts/run-analytics-service.sh
-```
+7.  **Analytics Service (Port 8086):**
+    ```bash
+    cd analytics-service
+    uvicorn app.main:app --host 0.0.0.0 --port 8086
+    ```
 
-8. **Terminal 8 - Frontend (Port 3000):**
-```bash
-./scripts/run-frontend.sh
-```
-
-**Quick Start Helper:**
-```bash
-# Display startup instructions
-./scripts/start-all-services.sh
-```
+8.  **Frontend (Port 3000):**
+    ```bash
+    cd frontend
+    npm run dev
+    ```
 
 **Service Health Checks:**
 ```bash

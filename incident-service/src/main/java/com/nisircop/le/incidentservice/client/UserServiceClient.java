@@ -10,10 +10,8 @@ import java.util.List;
 public interface UserServiceClient {
 
     @GetMapping("/{id}")
-    UserDTO getUserById(@PathVariable("id") Long id);
+    UserResponse getUserById(@PathVariable("id") Long id);
 
     @GetMapping("/station/{stationId}/officers")
     List<Long> getOfficerIdsByStation(@PathVariable("stationId") Long stationId);
-
-    record UserDTO(Long id, String username, String role) {}
 }

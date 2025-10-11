@@ -5,6 +5,21 @@ All notable changes to the NISIRCOP-LE project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- In-memory H2 database support for `geographic-service` and `incident-service` for local development.
+- `spring-dotenv` dependency to `api-gateway` to load environment variables from `.env` file.
+
+### Changed
+- Updated `README.md` with manual startup instructions for all services.
+- Updated `API_GUIDE.md` to reflect that the analytics service should be accessed through the API Gateway.
+- Corrected database configuration for `geographic-service` and `incident-service` to use H2 for the `local` profile.
+- Created `data` directories for `user-service`, `geographic-service`, and `incident-service` to allow for database creation.
+
+### Removed
+- All shell scripts from the `scripts` directory.
+
 ## [1.0.0] - Production Ready Release
 
 ### Added

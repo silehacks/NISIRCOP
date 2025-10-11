@@ -678,12 +678,12 @@ curl -X POST http://localhost:8080/api/geo/validate-point \
 
 ## 5. Analytics Service APIs
 
-**Note**: Analytics service runs on separate port (8086) and doesn't require authentication (internal service).
+**Note**: The analytics service is an internal service and should be accessed through the API Gateway.
 
 ### GET /analytics/incidents/count-by-type
 Get incident count grouped by type.
 
-**Endpoint**: `GET http://localhost:8086/analytics/incidents/count-by-type`
+**Endpoint**: `GET /analytics/incidents/count-by-type`
 
 **Success Response** (200 OK):
 ```json
@@ -707,7 +707,8 @@ Get incident count grouped by type.
 
 **cURL Example**:
 ```bash
-curl -X GET http://localhost:8086/analytics/incidents/count-by-type
+curl -X GET http://localhost:8080/analytics/incidents/count-by-type \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ---
@@ -715,7 +716,7 @@ curl -X GET http://localhost:8086/analytics/incidents/count-by-type
 ### GET /analytics/incidents/count-by-priority
 Get incident count grouped by priority.
 
-**Endpoint**: `GET http://localhost:8086/analytics/incidents/count-by-priority`
+**Endpoint**: `GET /analytics/incidents/count-by-priority`
 
 **Success Response** (200 OK):
 ```json
@@ -743,7 +744,8 @@ Get incident count grouped by priority.
 
 **cURL Example**:
 ```bash
-curl -X GET http://localhost:8086/analytics/incidents/count-by-priority
+curl -X GET http://localhost:8080/analytics/incidents/count-by-priority \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ---
@@ -751,7 +753,7 @@ curl -X GET http://localhost:8086/analytics/incidents/count-by-priority
 ### GET /analytics/incidents/locations
 Get all incident locations for mapping.
 
-**Endpoint**: `GET http://localhost:8086/analytics/incidents/locations`
+**Endpoint**: `GET /analytics/incidents/locations`
 
 **Success Response** (200 OK):
 ```json
@@ -775,7 +777,8 @@ Get all incident locations for mapping.
 
 **cURL Example**:
 ```bash
-curl -X GET http://localhost:8086/analytics/incidents/locations
+curl -X GET http://localhost:8080/analytics/incidents/locations \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ---
