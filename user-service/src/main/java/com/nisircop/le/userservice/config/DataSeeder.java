@@ -1,8 +1,10 @@
 package com.nisircop.le.userservice.config;
 
 import com.nisircop.le.userservice.model.User;
+import com.nisircop.le.userservice.model.UserProfile;
 import com.nisircop.le.userservice.model.UserRole;
 import com.nisircop.le.userservice.repository.UserRepository;
+import com.nisircop.le.userservice.repository.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,11 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class DataSeeder implements CommandLineRunner {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public DataSeeder(UserRepository userRepository, 
+                     UserProfileRepository userProfileRepository,
+                     PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.userProfileRepository = userProfileRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     @Transactional
@@ -29,31 +37,67 @@ public class DataSeeder implements CommandLineRunner {
     private void createUsers() {
         // Create SUPER_USER
         User superUser = new User();
+        superUser.setId(1L);
         superUser.setUsername("admin");
-        superUser.setPassword(passwordEncoder.encode("admin123"));
+        // TODO: SECURITY - Change default password in production!
+        String defaultPassword = System.getenv("DEFAULT_ADMIN_PASSWORD");
+        if (defaultPassword == null) {
+            defaultPassword = "admin123"; // Development only
+            System.err.println("WARNING: Using default password. Set DEFAULT_ADMIN_PASSWORD env var for production!");
+        }
+        superUser.setPassword(passwordEncoder.encode(defaultPassword));
         superUser.setEmail("admin@nisircop.le");
         superUser.setRole(UserRole.SUPER_USER);
         superUser.setActive(true);
         userRepository.save(superUser);
 
+        UserProfile superUserProfile = new UserProfile();
+        superUserProfile.setId(1L);
+        superUserProfile.setFirstName("System");
+        superUserProfile.setLastName("Administrator");
+        superUserProfile.setPhone("+251-11-123-4567");
+        superUserProfile.setBadgeNumber("ADMIN-001");
+        superUserProfile.setUser(superUser);
+        userProfileRepository.save(superUserProfile);
+
         // Create POLICE_STATION
         User policeStation = new User();
+        policeStation.setId(2L);
         policeStation.setUsername("station_commander");
-        policeStation.setPassword(passwordEncoder.encode("admin123"));
+        policeStation.setPassword(passwordEncoder.encode(defaultPassword));
         policeStation.setEmail("station@nisircop.le");
         policeStation.setRole(UserRole.POLICE_STATION);
         policeStation.setActive(true);
-        policeStation.setParent(superUser);
+        policeStation.setCreatedBy(superUser.getId());
         userRepository.save(policeStation);
+
+        UserProfile stationProfile = new UserProfile();
+        stationProfile.setId(2L);
+        stationProfile.setFirstName("Station");
+        stationProfile.setLastName("Commander");
+        stationProfile.setPhone("+251-11-234-5678");
+        stationProfile.setBadgeNumber("STATION-001");
+        stationProfile.setUser(policeStation);
+        userProfileRepository.save(stationProfile);
 
         // Create OFFICER
         User officer = new User();
+        officer.setId(3L);
         officer.setUsername("officer_001");
-        officer.setPassword(passwordEncoder.encode("admin123"));
+        officer.setPassword(passwordEncoder.encode(defaultPassword));
         officer.setEmail("officer001@nisircop.le");
         officer.setRole(UserRole.OFFICER);
         officer.setActive(true);
-        officer.setParent(policeStation);
+        officer.setCreatedBy(policeStation.getId());
         userRepository.save(officer);
+
+        UserProfile officerProfile = new UserProfile();
+        officerProfile.setId(3L);
+        officerProfile.setFirstName("John");
+        officerProfile.setLastName("Doe");
+        officerProfile.setPhone("+251-11-345-6789");
+        officerProfile.setBadgeNumber("OFF-001");
+        officerProfile.setUser(officer);
+        userProfileRepository.save(officerProfile);
     }
 }

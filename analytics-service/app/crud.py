@@ -21,3 +21,13 @@ def get_incident_count_by_priority(db: Session):
         models.Incident.priority.label("name"),
         func.count(models.Incident.id).label("count")
     ).group_by(models.Incident.priority).all()
+
+
+def get_all_incident_locations(db: Session):
+    """
+    Returns the latitude and longitude of all incidents.
+    """
+    return db.query(
+        models.Incident.latitude,
+        models.Incident.longitude
+    ).all()

@@ -1,6 +1,6 @@
 <template>
   <div class="p-8 bg-white rounded-lg shadow-md">
-    <h2 class="text-2xl font-bold mb-6 text-black">Report New Incident</h2>
+    <h2 class="text-2xl font-bold mb-6">Report New Incident</h2>
     <form @submit.prevent="handleSubmit">
       <div class="mb-4">
         <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
@@ -28,7 +28,7 @@
           <label for="incident_type" class="block text-sm font-medium text-gray-700">Incident Type</label>
           <select
             id="incident_type"
-            v-model="form.incidentType"
+            v-model="form.incident_type"
             class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option>Theft</option>
@@ -72,7 +72,7 @@
         </button>
         <button
           type="submit"
-          class="px-4 py-2 text-sm font-medium text-white bg-[#1478f0] border border-transparent rounded-md shadow-sm hover:bg-[#0f61c9] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1478f0]"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Submit Report
         </button>
@@ -86,8 +86,8 @@ import { ref } from 'vue';
 import { useIncidentStore } from '../stores/incident.store';
 
 const props = defineProps<{
-  latitude?: number | null;
-  longitude?: number | null;
+  latitude: number;
+  longitude: number;
 }>();
 
 const emit = defineEmits(['close']);
@@ -97,24 +97,16 @@ const incidentStore = useIncidentStore();
 const form = ref({
   title: '',
   description: '',
-  incidentType: 'Other',
+  incident_type: 'Other',
   priority: 'Medium',
-  latitude: props.latitude ?? null,
-  longitude: props.longitude ?? null,
+  latitude: props.latitude,
+  longitude: props.longitude,
 });
-
-// update form if props change
-watchEffect(() => {
-  form.value.latitude = props.latitude ?? form.value.latitude
-  form.value.longitude = props.longitude ?? form.value.longitude
-})
 
 const handleSubmit = async () => {
   try {
     await incidentStore.addIncident(form.value);
     alert('Incident reported successfully!');
-    // refresh global incident list
-    await incidentStore.fetchIncidents();
     emit('close');
   } catch (error) {
     console.error('Failed to report incident:', error);

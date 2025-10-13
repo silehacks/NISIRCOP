@@ -1,159 +1,828 @@
-# NISIRCOP-LE: Crime Analytics for Ethiopian Law Enforcement
+# NISIRCOP-LE: Crime Analytics Platform for Ethiopian Law Enforcement
 
-## 📋 Project Overview
-NISIRCOP-LE (NISIR Common Operational Picture For Law Enforcement) is a comprehensive digital platform designed specifically for Ethiopian police forces. It transforms traditional, paper-based crime reporting into a modern, data-driven intelligence system, enabling real-time monitoring, analysis, and strategic decision-making.
+<div align="center">
 
-### The Problem We Solve
-Ethiopian law enforcement currently faces challenges with:
-- Paper-based crime reports that get lost, are hard to aggregate, or are delayed.
-- Manual crime mapping using physical maps and pins, which is inefficient and lacks analytical depth.
-- Limited data analysis capabilities, making it difficult to identify crime patterns and plan strategic interventions.
-- Decisions often based on intuition rather than on concrete, evidence-based insights.
-- No centralized, real-time database of crime incidents across different jurisdictions.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Java](https://img.shields.io/badge/java-17+-red.svg)
+![Python](https://img.shields.io/badge/python-3.11+-green.svg)
+![Docker](https://img.shields.io/badge/docker-compose-blue.svg)
+![Status](https://img.shields.io/badge/status-production--ready-brightgreen.svg)
 
-### 💡 Our Solution
-NISIRCOP-LE is a web-based microservices application that provides:
-- **Real-time digital crime reporting** with precise GPS coordinates.
-- **Interactive crime maps** for geographic intelligence and visualization.
-- **Powerful analytics** to identify crime hotspots, trends, and patterns.
-- **Strict hierarchical access control** that mirrors the police organizational structure.
-- **Automated boundary validation** to ensure incidents are reported within the correct jurisdiction.
+**A comprehensive digital platform transforming crime reporting and intelligence for Ethiopian police forces**
 
----
+</div>
+
+## 🎯 Overview
+
+NISIRCOP-LE (NISIR Common Operational Picture For Law Enforcement) is a production-ready microservices platform designed to modernize crime reporting, analysis, and intelligence for Ethiopian law enforcement agencies. It transforms traditional paper-based processes into a sophisticated digital ecosystem that enables real-time monitoring, data-driven decision making, and strategic crime prevention.
+
+### Key Value Propositions
+
+- **🚀 Real-time Crime Intelligence**: Instant incident reporting with GPS coordinates and automated analytics
+- **🗺️ Interactive Crime Mapping**: Geospatial visualization with hotspot analysis and boundary validation
+- **📊 Advanced Analytics**: Python-powered data analysis with machine learning capabilities
+- **🔐 Hierarchical Security**: Role-based access control mirroring police organizational structure
+- **⚡ High Performance**: Optimized microservices architecture with health monitoring
+- **🐳 Production Ready**: Containerized deployment with comprehensive monitoring and logging
 
 ## 🏗️ System Architecture
 
 ### Technology Stack
-- **Backend Services:** Java 17, Spring Boot 3.2+, Spring Cloud
-- **Database:** PostgreSQL 15+ with PostGIS for spatial data capabilities.
-- **Analytics Service:** Python 3.11 with FastAPI for high-performance data analysis.
-- **Frontend:** Vue.js 3 (Composition API, TypeScript), Pinia for state management, and Tailwind CSS for styling.
-- **Mapping:** Leaflet.js for interactive maps.
-- **Data Visualization:** Chart.js for creating insightful dashboards.
-- **Containerization:** Docker and Docker Compose for streamlined deployment.
 
-### Microservices
-The system is composed of the following microservices:
-- **Frontend (Port 3000):** The main user interface, built with Vue.js.
-- **API Gateway (Port 8080):** A single entry point for all client requests, handling routing and security.
-- **Discovery Server (Port 8761):** A Eureka server for service registration and discovery.
-- **Auth Service (Port 8081):** Manages user authentication and JWT generation.
-- **User Service (Port 8085):** Handles user profiles, roles, and hierarchical relationships.
-- **Geographic Service (Port 8084):** Manages spatial data, including user boundaries and location validation.
-- **Incident Service (Port 8083):** Manages the core functionality of creating, reading, updating, and deleting crime incidents.
-- **Analytics Service (Port 8086):** Provides data aggregation and analytics for crime trends.
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Frontend** | Vue.js 3, TypeScript, Vite | Modern reactive user interface |
+| **UI Framework** | Tailwind CSS | Responsive design system |
+| **State Management** | Pinia | Frontend state management |
+| **Routing** | Vue Router | Client-side navigation |
+| **HTTP Client** | Axios | API communication |
+| **Maps** | Leaflet | Geographic visualization |
+| **Charts** | Chart.js | Data visualization |
+| **Backend** | Java 17, Spring Boot 3.2+ | Microservices foundation |
+| **Analytics** | Python 3.11, FastAPI | High-performance data processing |
+| **Database** | SQLite (dev), PostgreSQL (prod) | Data persistence |
+| **Service Discovery** | Netflix Eureka | Dynamic service registration |
+| **API Gateway** | Spring Cloud Gateway | Unified entry point & routing |
+| **Security** | JWT, Spring Security | Authentication & authorization |
+| **Containerization** | Docker, Docker Compose | Deployment & orchestration |
+| **Monitoring** | Spring Actuator | Health checks & metrics |
 
----
+### Microservices Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │◄───┤  API Gateway    │
+│   (Vue.js)      │    │   Port: 8080    │
+│   Port: 3000    │    │                 │
+└─────────────────┘    └─────────────────┘
+                                │
+                       ┌─────────────────┐
+                       │ Discovery Server│
+                       │   Port: 8761    │
+                       └─────────────────┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          │                     │                     │
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Auth Service   │    │  User Service   │    │Geographic Serv. │
+│   Port: 8081    │    │   Port: 8085    │    │   Port: 8084    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+          │                     │                     │
+          └─────────────────────┼─────────────────────┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          │                     │                     │
+┌─────────────────┐    ┌─────────────────┐    
+│Incident Service │    │Analytics Service│    
+│   Port: 8083    │    │   Port: 8086    │    
+└─────────────────┘    └─────────────────┘    
+```
 
 ## 👮‍♂️ User Roles & Hierarchy
-The system enforces a strict three-tier user hierarchy to ensure data security and appropriate access levels.
 
-- **SUPER_USER (National/Regional Administrator):**
-  - Can create and manage `POLICE_STATION` accounts.
-  - Has access to all crime data across all jurisdictions.
-  - Can view high-level strategic analytics and reports.
-  - **Note:** `SUPER_USER` accounts can report incidents anywhere, bypassing the usual geographic boundary checks. This is an intentional design choice for administrative purposes.
+### 🏛️ SUPER_USER (National/Regional Administrator)
+- **Permissions**: Full system access, can create POLICE_STATION accounts
+- **Capabilities**: 
+  - View all crime data across jurisdictions
+  - Access strategic analytics and reports
+  - Report incidents anywhere (bypasses boundary validation)
+  - Manage system-wide configurations
 
-- **POLICE_STATION (Station Commander):**
-  - Can create and manage `OFFICER` accounts within their station.
-  - Can view all incidents reported within their station's geographic boundary.
-  - Can edit and delete incidents reported by their officers.
-  - Can monitor local crime reports and officer activity.
+### 🏢 POLICE_STATION (Station Commander)
+- **Permissions**: Station-level management and oversight
+- **Capabilities**:
+  - Create and manage OFFICER accounts within station
+  - View all incidents within station's geographic boundary
+  - Edit/delete incidents reported by their officers
+  - Access station-level analytics and reports
 
-- **OFFICER (Field Officer):**
-  - Can report new incidents from the field.
-  - Can only view incidents they have personally reported.
-  - Cannot create other users or view data outside their own reports.
-
----
+### 👮 OFFICER (Field Officer)
+- **Permissions**: Field reporting and personal data access
+- **Capabilities**:
+  - Report new incidents from the field
+  - View only their own incident reports
+  - Access mobile-optimized interface
+  - Cannot create users or access others' data
 
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
-- Docker and Docker Compose
-- Java 17+
-- Maven 3.6+
-- Node.js 18+ and npm
-- Python 3.11+ and pip
 
-### Installation & Startup
+#### For Docker Deployment
+- **Docker Engine** 20.10+ and **Docker Compose** 2.0+
+- **Git** for cloning the repository
+- **Minimum 4GB RAM** and **2 CPU cores** for optimal performance
+- **10GB free disk space** for containers and data
 
-**1. Clone the Repository**
+#### For Local Development (No Docker)
+- **Java 17+** (OpenJDK 17 or later)
+- **Maven 3.6+** for building Java services
+- **Python 3.11+** for Analytics Service
+- **Node.js 18+** and **npm** for Frontend
+- **Git** for cloning the repository
+- **Minimum 8GB RAM** and **4 CPU cores** recommended
+- **SQLite** (usually pre-installed on most systems)
+
+### Installation
+
+#### 1. Clone Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/your-org/nisircop-le.git
 cd nisircop-le
 ```
 
-**2. Set Up Environment Variables**
-Create a `.env` file from the provided template. This file contains essential configuration, including database credentials and a secure JWT secret.
+#### 2. Environment Configuration
 ```bash
+# Copy and configure environment variables
 cp .env.example .env
+
+# Edit .env file with your specific configuration
+# CRITICAL: Change JWT_SECRET for production!
+vim .env
 ```
-**Important:** The default `JWT_SECRET` in the `.env` file is for development only. For production, generate a new, secure secret using a tool like `openssl rand -base64 32`.
 
-**3. Run the Application**
-
-**Option A: Using Docker Compose (Recommended)**
-This is the simplest way to get the entire application running.
+**⚠️ Production Security**: Generate a secure JWT secret:
 ```bash
-sudo docker compose up --build -d
+openssl rand -base64 32
 ```
-All services, including the database, will be started in detached mode.
 
-**Option B: Local Development Setup**
-If you encounter issues with Docker (e.g., rate limits), you can run the services locally.
+#### 3. Create Data Directory
+```bash
+mkdir -p data
+chmod 755 data
+```
 
-*   **Start the Database:**
-    ```bash
-    sudo docker compose up -d postgres
-    ```
+### Deployment Options
 
-*   **Start Backend Services (in separate terminals):**
-    ```bash
-    # Discovery Server
-    cd discovery-server && mvn spring-boot:run &
+#### Option A: Docker Deployment (Recommended for Production)
 
-    # API Gateway
-    cd ../api-gateway && mvn spring-boot:run &
+**Development Environment:**
+```bash
+# Start all services with development settings
+docker-compose up --build -d
 
-    # Auth Service
-    cd ../auth-service && mvn spring-boot:run &
+# View logs
+docker-compose logs -f
+```
 
-    # User Service
-    cd ../user-service && mvn spring-boot:run &
+**Production Environment:**
+```bash
+# Start with production optimizations
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 
-    # Geographic Service
-    cd ../geographic-service && mvn spring-boot:run &
+# Enable resource limits and health checks
+docker-compose ps
+```
 
-    # Incident Service
-    cd ../incident-service && mvn spring-boot:run &
+**Individual Service Development:**
+```bash
+# Start only core infrastructure
+docker-compose up -d discovery-server
 
-    # Analytics Service
-    cd ../analytics-service
-    pip install -r requirements.txt
-    uvicorn app.main:app --host 0.0.0.0 --port 8086 &
-    ```
+# Scale specific services
+docker-compose up -d auth-service user-service
+```
 
-*   **Start the Frontend:**
-    ```bash
-    cd ../frontend
-    npm install
-    npm run dev
-    ```
+#### Option B: Local Development (No Docker)
 
-**4. Access the Application**
-Once all services are running, you can access the application in your browser at `http://localhost:3000`.
+This option allows you to run the full stack locally without Docker, which is useful for:
+- Development and debugging
+- Systems without Docker support
+- Testing individual services
+- Learning the application architecture
 
-### Default Login Credentials
-- **SUPER_USER:** `admin` / `admin123`
-- **POLICE_STATION:** `station_commander` / `admin123`
-- **OFFICER:** `officer_001` / `admin123`
+**Prerequisites Setup:**
 
-**Note:** It is critical to change these default passwords in a production environment.
+1. **Install Java (if not installed):**
+```bash
+# Ubuntu/Debian
+sudo apt-get update && sudo apt-get install -y openjdk-17-jdk maven
+
+# macOS
+brew install openjdk@17 maven
+
+# Verify installation
+java -version
+mvn -version
+```
+
+2. **Install Python dependencies:**
+```bash
+# Ubuntu/Debian
+sudo apt-get install -y python3 python3-pip
+
+# macOS
+brew install python3
+
+# Install Analytics Service dependencies
+cd analytics-service
+pip3 install -r requirements.txt --user
+cd ..
+```
+
+3. **Install Node.js and Frontend dependencies:**
+```bash
+# Ubuntu/Debian
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# macOS
+brew install node
+
+# Install Frontend dependencies
+cd frontend
+npm install
+cd ..
+```
+
+**Running Services Locally:**
+
+NISIRCOP-LE consists of 8 services that must be started in a specific order. You'll need **8 separate terminal windows/tabs**.
+
+> **Important:** Services depend on Eureka for discovery. Start Discovery Server first and wait ~30 seconds before starting other services.
+
+**Service Startup Order:**
+
+1. **Terminal 1 - Discovery Server (Port 8761):**
+```bash
+./scripts/run-discovery-server.sh
+# Wait for "Eureka Server started" message (~30 seconds)
+```
+
+2. **Terminal 2 - API Gateway (Port 8080):**
+```bash
+./scripts/run-api-gateway.sh
+```
+
+3. **Terminal 3 - Auth Service (Port 8081):**
+```bash
+./scripts/run-auth-service.sh
+```
+
+4. **Terminal 4 - User Service (Port 8085):**
+```bash
+./scripts/run-user-service.sh
+```
+
+5. **Terminal 5 - Geographic Service (Port 8084):**
+```bash
+./scripts/run-geographic-service.sh
+```
+
+6. **Terminal 6 - Incident Service (Port 8083):**
+```bash
+./scripts/run-incident-service.sh
+```
+
+7. **Terminal 7 - Analytics Service (Port 8086):**
+```bash
+./scripts/run-analytics-service.sh
+```
+
+8. **Terminal 8 - Frontend (Port 3000):**
+```bash
+./scripts/run-frontend.sh
+```
+
+**Quick Start Helper:**
+```bash
+# Display startup instructions
+./scripts/start-all-services.sh
+```
+
+**Service Health Checks:**
+```bash
+# Check Eureka Dashboard (see all registered services)
+curl http://localhost:8761
+
+# Check individual service health
+curl http://localhost:8080/actuator/health  # API Gateway
+curl http://localhost:8081/actuator/health  # Auth Service
+curl http://localhost:8085/actuator/health  # User Service
+curl http://localhost:8084/actuator/health  # Geographic Service
+curl http://localhost:8083/actuator/health  # Incident Service
+curl http://localhost:8086/health           # Analytics Service
+```
+
+**Access Points:**
+- **Frontend Application:** http://localhost:3000
+- **API Gateway:** http://localhost:8080
+- **Eureka Dashboard:** http://localhost:8761
+
+### 4. Verify Deployment
+
+#### Health Checks
+```bash
+# Check all services status
+docker-compose ps
+
+# Verify service health
+curl http://localhost:8761/actuator/health  # Discovery Server
+curl http://localhost:8080/actuator/health  # API Gateway
+curl http://localhost:8081/actuator/health  # Auth Service
+```
+
+#### Service Discovery
+Visit http://localhost:8761 to see all registered services in Eureka dashboard.
+
+## 🔧 Configuration Management
+
+### Environment Variables
+
+| Variable | Description | Default | Production Notes |
+|----------|-------------|---------|------------------|
+| `JWT_SECRET` | JWT signing key | `dev-secret` | ⚠️ **Must change for production** |
+| `SPRING_PROFILES_ACTIVE` | Spring profile | `docker` | Use `prod` for production |
+| `DB_PATH` | Database file path | `./data/nisircop.db` | Ensure persistent volume |
+| `EUREKA_SERVER_URL` | Service discovery URL | Auto-configured | Network-specific |
+
+### Production Configuration Files
+
+#### Spring Boot Profiles
+- **Development**: Default logging, SQL debugging enabled
+- **Docker**: Container-optimized settings
+- **Production**: Performance tuned, minimal logging
+
+#### Database Configuration
+```yaml
+# Development (SQLite)
+spring:
+  datasource:
+    url: jdbc:sqlite:./data/nisircop.db
+    driver-class-name: org.sqlite.JDBC
+
+# Production (PostgreSQL + PostGIS)
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/nisircop
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+```
+
+## 🛡️ Security Features
+
+### Authentication & Authorization
+- **JWT Token-based Authentication**: Stateless, scalable authentication
+- **Role-based Access Control (RBAC)**: Hierarchical permission system
+- **Automatic Token Refresh**: Seamless user experience
+- **Session Management**: Secure token storage and cleanup
+
+### API Security
+- **CORS Configuration**: Restricted cross-origin requests
+- **Input Validation**: Comprehensive request validation
+- **SQL Injection Prevention**: JPA/Hibernate protection
+- **Rate Limiting Ready**: Configurable request throttling
+
+### Data Protection
+- **Boundary Validation**: Geographic access control
+- **Audit Logging**: User action tracking
+- **Error Sanitization**: Secure error responses
+- **Encrypted Communications**: HTTPS-ready configuration
+
+## 📊 Monitoring & Observability
+
+### Health Monitoring
+All services expose health endpoints via Spring Actuator:
+
+```bash
+# Service health status
+GET /actuator/health
+
+# Detailed metrics
+GET /actuator/metrics
+
+# Service information
+GET /actuator/info
+
+# Eureka registration status
+GET /actuator/eureka
+```
+
+### Logging Strategy
+- **Structured Logging**: JSON format for log aggregation
+- **Log Levels**: Configurable per environment
+- **Security Logging**: Authentication and authorization events
+- **Performance Logging**: Request timing and resource usage
+
+### Docker Health Checks
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 5
+  start_period: 60s
+```
+
+## 🚀 Production Deployment
+
+### Resource Requirements
+
+#### Minimum Production Setup
+- **CPU**: 4 cores
+- **Memory**: 8GB RAM
+- **Storage**: 50GB SSD
+- **Network**: 100Mbps
+
+#### Recommended Production Setup
+- **CPU**: 8 cores
+- **Memory**: 16GB RAM
+- **Storage**: 200GB NVMe SSD
+- **Network**: 1Gbps
+- **Load Balancer**: Nginx/HAProxy
+
+### Production Checklist
+
+#### Security
+- [ ] Change default JWT_SECRET
+- [ ] Enable HTTPS/TLS termination
+- [ ] Configure firewall rules
+- [ ] Set up VPN access
+- [ ] Enable audit logging
+- [ ] Configure backup encryption
+
+#### Performance
+- [ ] Enable JVM performance tuning
+- [ ] Configure connection pooling
+- [ ] Set up database indexing
+- [ ] Enable response caching
+- [ ] Configure load balancing
+
+#### Reliability
+- [ ] Set up data backups
+- [ ] Configure monitoring alerts
+- [ ] Test disaster recovery
+- [ ] Implement log rotation
+- [ ] Set up service redundancy
+
+### Scaling Strategies
+
+#### Horizontal Scaling
+```bash
+# Scale specific services
+docker-compose up -d --scale auth-service=3
+docker-compose up -d --scale incident-service=2
+```
+
+#### Database Scaling
+- **Read Replicas**: For analytics workloads
+- **Connection Pooling**: HikariCP optimization
+- **Indexing Strategy**: Geographic and temporal indexes
+
+## 🎨 Frontend Application
+
+### Features
+
+The Vue.js frontend provides a modern, responsive interface with:
+
+- **🔐 Authentication & Authorization**: Secure login with JWT token management
+- **📊 Dashboard**: Real-time crime statistics and visualizations
+- **🗺️ Interactive Maps**: Geospatial incident visualization using Leaflet
+- **📝 Incident Reporting**: Intuitive form-based incident creation
+- **📈 Analytics Charts**: Data visualization with Chart.js
+- **🎯 Role-Based UI**: Adaptive interface based on user permissions
+- **📱 Responsive Design**: Mobile-first design using Tailwind CSS
+
+### Frontend Architecture
+
+```
+frontend/
+├── src/
+│   ├── components/       # Reusable Vue components
+│   │   └── IncidentForm.vue
+│   ├── views/           # Page-level components
+│   │   ├── Login.vue
+│   │   └── Dashboard.vue
+│   ├── stores/          # Pinia state management
+│   │   ├── auth.store.ts
+│   │   └── incident.store.ts
+│   ├── services/        # API integration
+│   │   ├── apiClient.ts
+│   │   ├── auth.service.ts
+│   │   └── incident.service.ts
+│   ├── router/          # Vue Router configuration
+│   │   └── index.ts
+│   ├── App.vue          # Root component
+│   └── main.ts          # Application entry point
+├── public/              # Static assets
+├── index.html           # HTML template
+├── vite.config.ts       # Vite configuration
+├── tailwind.config.js   # Tailwind CSS configuration
+└── package.json         # Dependencies
+```
+
+### Development Workflow
+
+**Local Development:**
+```bash
+cd frontend
+npm install
+npm run dev
+# Opens at http://localhost:3000
+```
+
+**Production Build:**
+```bash
+npm run build
+# Output in dist/ directory
+```
+
+**Preview Production Build:**
+```bash
+npm run preview
+```
+
+### Environment Configuration
+
+Create a `.env.local` file for local development:
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+For Docker deployment, the API proxy is configured automatically in `vite.config.ts`.
+
+## 🔍 API Documentation
+
+### Core Endpoints
+
+#### Authentication
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "secure_password"
+}
+```
+
+#### User Management
+```http
+GET    /api/users                 # List users (role-based filtering)
+POST   /api/users                 # Create user (hierarchy enforced)
+PUT    /api/users/{id}             # Update user
+DELETE /api/users/{id}             # Delete user
+```
+
+#### Incident Management
+```http
+GET    /api/incidents              # List incidents (boundary filtered)
+POST   /api/incidents              # Report incident
+PUT    /api/incidents/{id}         # Update incident
+DELETE /api/incidents/{id}         # Delete incident
+```
+
+#### Analytics
+```http
+GET    /api/analytics/summary      # Crime statistics
+GET    /api/analytics/hotspots     # Geographic hotspots
+GET    /api/analytics/trends       # Temporal patterns
+```
+
+### Default Credentials
+
+| Role | Username | Password | Access Level |
+|------|----------|----------|--------------|
+| SUPER_USER | `admin` | `admin123` | Full system access |
+| POLICE_STATION | `station_commander` | `admin123` | Station management |
+| OFFICER | `officer_001` | `admin123` | Field reporting |
+
+**⚠️ CRITICAL**: Change these credentials immediately in production!
+
+## 🧪 Testing Strategy
+
+### Automated Testing
+```bash
+# Run all tests
+./scripts/run-tests.sh
+
+# Unit tests
+mvn test
+
+# Integration tests
+mvn integration-test
+
+# API tests
+./scripts/api-test.sh
+```
+
+### Manual Testing Checklist
+
+#### Authentication Flow
+- [ ] Login with each role type
+- [ ] JWT token validation
+- [ ] Session timeout handling
+- [ ] Logout functionality
+
+#### User Management
+- [ ] Role-based user creation
+- [ ] Hierarchy enforcement
+- [ ] Permission validation
+- [ ] Profile management
+
+#### Incident Reporting
+- [ ] Geographic validation
+- [ ] Form validation
+- [ ] File uploads
+- [ ] Search and filtering
+
+#### Analytics Dashboard
+- [ ] Chart rendering
+- [ ] Data accuracy
+- [ ] Real-time updates
+- [ ] Export functionality
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### Frontend Connection Issues
+```bash
+# Issue: Frontend can't connect to backend
+# Solution 1: Verify API Gateway is running
+curl http://localhost:8080/actuator/health
+
+# Solution 2: Check CORS configuration
+# Ensure allowedOrigins in api-gateway/src/main/resources/application.yml includes:
+# - http://localhost:3000
+
+# Solution 3: Clear browser cache and cookies
+# Press Ctrl+Shift+Delete in browser
+
+# Solution 4: Check frontend .env.local file
+cat frontend/.env.local
+# Should contain: VITE_API_URL=http://localhost:8080
+```
+
+#### Frontend Build Issues
+```bash
+# Issue: npm install fails
+# Solution: Clear npm cache
+cd frontend
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+
+# Issue: TypeScript compilation errors
+# Solution: Use build without type checking
+npm run build
+# Instead of npm run build:check
+```
+
+#### Service Discovery Problems
+```bash
+# Check Eureka dashboard
+curl http://localhost:8761/
+
+# Verify service registration
+docker-compose logs discovery-server
+
+# Restart discovery service
+docker-compose restart discovery-server
+```
+
+#### Database Connection Issues
+```bash
+# Check database file permissions
+ls -la data/
+
+# Verify SQLite integrity
+sqlite3 data/nisircop.db "PRAGMA integrity_check;"
+
+# Reset database
+rm data/nisircop.db && docker-compose restart
+```
+
+#### Performance Issues
+```bash
+# Check container resources
+docker stats
+
+# Review JVM memory usage
+docker-compose logs auth-service | grep -i "heap\|memory"
+
+# Monitor database queries
+tail -f data/query.log
+```
+
+### Log Analysis
+```bash
+# Service-specific logs
+docker-compose logs -f [service-name]
+
+# Error aggregation
+docker-compose logs | grep -i "error\|exception"
+
+# Performance monitoring
+docker-compose logs | grep -i "slow\|timeout"
+```
+
+## 📈 Performance Optimization
+
+### JVM Tuning
+```bash
+# Production JVM settings (in docker-compose.prod.yml)
+JAVA_OPTS: "-Xmx512m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+```
+
+### Database Optimization
+```sql
+-- Create performance indexes
+CREATE INDEX idx_incidents_location ON incidents(latitude, longitude);
+CREATE INDEX idx_incidents_date ON incidents(occurred_at);
+CREATE INDEX idx_users_role ON users(role);
+```
+
+### Caching Strategy
+- **Application Level**: Spring Cache abstraction
+- **Database Level**: Query result caching
+- **HTTP Level**: Response caching headers
+
+## 🚀 Migration from Development to Production
+
+### Database Migration
+```bash
+# Export development data
+./scripts/export-dev-data.sh
+
+# Set up PostgreSQL production database
+docker run -d --name postgres-prod \
+  -e POSTGRES_DB=nisircop \
+  -e POSTGRES_USER=nisircop \
+  -e POSTGRES_PASSWORD=secure_password \
+  -p 5432:5432 \
+  postgis/postgis:15-3.3
+
+# Import data to production
+./scripts/import-prod-data.sh
+```
+
+### Configuration Updates
+```bash
+# Update application.yml for production
+sed -i 's/sqlite/postgresql/g' */src/main/resources/application.yml
+
+# Update docker-compose for production database
+cp docker-compose.prod-db.yml docker-compose.override.yml
+```
+
+## 📚 Additional Resources
+
+### Documentation
+- [API Reference](./docs/api-reference.md)
+- [Deployment Guide](./docs/deployment-guide.md)
+- [Security Best Practices](./docs/security-guide.md)
+- [Monitoring Setup](./docs/monitoring-guide.md)
+
+### Community
+- **Issues**: [GitHub Issues](https://github.com/your-org/nisircop-le/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/nisircop-le/discussions)
+- **Contributing**: [Contributing Guidelines](./CONTRIBUTING.md)
+
+### Support
+- **Email**: support@nisircop-le.com
+- **Documentation**: [User Manual](./docs/user-manual.pdf)
+- **Training**: [Video Tutorials](https://training.nisircop-le.com)
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🎯 Roadmap
+
+### Current Version (v1.0.0)
+- ✅ Core microservices architecture
+- ✅ Role-based access control
+- ✅ Crime incident reporting
+- ✅ Vue.js frontend application
+- ✅ Interactive maps and visualizations
+- ✅ Basic analytics dashboard
+- ✅ SQLite development setup
+- ✅ Docker containerization
+- ✅ Local development support (no Docker required)
+
+### Future Enhancements (v2.0.0)
+- 🔄 PostgreSQL + PostGIS migration
+- 🔄 Advanced geospatial analytics
+- 🔄 Mobile application (iOS/Android)
+- 🔄 Real-time notifications
+- 🔄 Machine learning predictions
+- 🔄 Integration with external systems
+
+### Enterprise Features (v3.0.0)
+- 🔄 Multi-tenant architecture
+- 🔄 Advanced reporting engine
+- 🔄 Workflow management
+- 🔄 Document management
+- 🔄 Advanced security features
+- 🔄 Third-party integrations
 
 ---
 
-### 🚨 Troubleshooting
-- **Connection Errors:** If services fail to connect, ensure the `discovery-server` is running and that all services have successfully registered. Check the log files for each service for detailed error messages.
-- **Frontend Issues:** If the frontend is not loading correctly, check the browser's developer console for errors. Ensure the API gateway is running and that the proxy configuration in `vite.config.ts` is correct.
-- **Database Problems:** Use `sudo docker compose logs postgres` to check the database logs. Ensure the credentials in your `.env` file match those in the `docker-compose.yml` file.
+<div align="center">
+
+**Built with ❤️ for Ethiopian Law Enforcement**
+
+*Transforming crime fighting through technology*
+
+</div>

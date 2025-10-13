@@ -1,10 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
-import DashboardShell from '../views/DashboardShell.vue'
-import DashboardMap from '../views/DashboardMap.vue'
-import Incidents from '../views/Incidents.vue'
-import Analytics from '../views/Analytics.vue'
-import Users from '../views/Users.vue'
+import Dashboard from '../views/Dashboard.vue'
 import { useAuthStore } from '../stores/auth.store'
 
 const routes = [
@@ -16,14 +12,9 @@ const routes = [
   },
   {
     path: '/',
-    component: DashboardShell,
+    name: 'Dashboard',
+    component: Dashboard,
     meta: { requiresAuth: true },
-    children: [
-      { path: '', name: 'Dashboard', component: DashboardMap },
-      { path: 'incidents', name: 'Incidents', component: Incidents },
-      { path: 'analytics', name: 'Analytics', component: Analytics },
-      { path: 'users', name: 'Users', component: Users },
-    ],
   },
   {
     path: '/:pathMatch(.*)*',
@@ -36,7 +27,7 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   const isAuthenticated = authStore.isAuthenticated
 

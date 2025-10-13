@@ -1,85 +1,175 @@
 package com.nisircop.le.userservice.service;
 
+import com.nisircop.le.userservice.dto.UserCreateRequest;
+import com.nisircop.le.userservice.dto.UserResponseDto;
+import com.nisircop.le.userservice.dto.ValidateRequest;
+import com.nisircop.le.userservice.exception.ResourceNotFoundException;
+import com.nisircop.le.userservice.exception.UserServiceException;
 import com.nisircop.le.userservice.model.User;
 import com.nisircop.le.userservice.model.UserProfile;
 import com.nisircop.le.userservice.model.UserRole;
 import com.nisircop.le.userservice.repository.UserProfileRepository;
 import com.nisircop.le.userservice.repository.UserRepository;
-import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserProfileRepository userProfileRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    private final WKTReader wktReader = new WKTReader();
-
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserResponseDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::mapToUserResponseDto)
+                .collect(Collectors.toList());
     }
 
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public Optional<UserResponseDto> getUserById(Long id) {
+        return userRepository.findById(id).map(this::mapToUserResponseDto);
     }
 
-    public Optional<User> getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public Optional<UserResponseDto> getUserByUsername(String username) {
+        return userRepository.findByUsername(username).map(this::mapToUserResponseDto);
     }
 
     @Transactional
-    public User createUser(User user, UserProfile userProfile, String boundaryWkt, Long creatorId) {
-        User creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new RuntimeException("Creator not found"));
+    public UserResponseDto createUser(UserCreateRequest request, Long creatorId) {
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEmail(request.getEmail());
+        user.setRole(UserRole.valueOf(request.getRole().toUpperCase()));
+        user.setCreatedBy(creatorId);
+        user.setActive(true);
 
-        validateUserCreation(creator, user.getRole());
+        UserProfile userProfile = new UserProfile();
+        userProfile.setFirstName(request.getFirstName());
+        userProfile.setLastName(request.getLastName());
+        userProfile.setPhone(request.getPhone());
+        userProfile.setBadgeNumber(request.getBadgeNumber());
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setParent(creator);
+        user.setUserProfile(userProfile);
+        userProfile.setUser(user);
+
         User savedUser = userRepository.save(user);
-
-        if (boundaryWkt != null && !boundaryWkt.isEmpty()) {
-            try {
-                Polygon boundary = (Polygon) wktReader.read(boundaryWkt);
-                userProfile.setBoundary(boundary);
-            } catch (ParseException e) {
-                throw new RuntimeException("Invalid WKT format for boundary", e);
-            }
-        }
-
-        userProfile.setUser(savedUser);
-        userProfileRepository.save(userProfile);
-
-        return savedUser;
+        return mapToUserResponseDto(savedUser);
     }
 
-    private void validateUserCreation(User creator, UserRole roleToCreate) {
-        UserRole creatorRole = creator.getRole();
-        boolean isAllowed = switch (creatorRole) {
-            case SUPER_USER -> roleToCreate == UserRole.POLICE_STATION;
-            case POLICE_STATION -> roleToCreate == UserRole.OFFICER;
-            default -> false;
-        };
-        if (!isAllowed) {
-            throw new RuntimeException("User with role " + creatorRole + " cannot create user with role " + roleToCreate);
-        }
+    public Optional<UserResponseDto> validateUser(ValidateRequest request) {
+        return userRepository.findByUsername(request.getUsername())
+                .filter(user -> passwordEncoder.matches(request.getPassword(), user.getPassword()))
+                .map(this::mapToUserResponseDto);
     }
 
-    // This bean needs to be configured in a SecurityConfig class
-    // For now, we assume it's available.
+    public List<Long> getOfficerIdsByStation(Long stationId) {
+        return userRepository.findByCreatedBy(stationId)
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public UserResponseDto updateUser(Long id, UserCreateRequest request, Long updaterId) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        
+        validateUserUpdatePermission(updaterId, user);
+        
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setRole(UserRole.valueOf(request.getRole().toUpperCase()));
+        
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+        
+        if (user.getUserProfile() != null) {
+            user.getUserProfile().setFirstName(request.getFirstName());
+            user.getUserProfile().setLastName(request.getLastName());
+            user.getUserProfile().setPhone(request.getPhone());
+            user.getUserProfile().setBadgeNumber(request.getBadgeNumber());
+        }
+        
+        User savedUser = userRepository.save(user);
+        return mapToUserResponseDto(savedUser);
+    }
+
+    @Transactional
+    public void deleteUser(Long id, Long deleterId) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        
+        validateUserDeletePermission(deleterId, user);
+        
+        userRepository.deleteById(id);
+    }
+
+    private void validateUserUpdatePermission(Long updaterId, User targetUser) {
+        User updater = userRepository.findById(updaterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Updater not found with id: " + updaterId));
+        
+        String updaterRole = updater.getRole().name();
+        
+        if ("SUPER_USER".equals(updaterRole)) {
+            return;
+        }
+        
+        if ("POLICE_STATION".equals(updaterRole) && 
+            targetUser.getCreatedBy() != null && 
+            targetUser.getCreatedBy().equals(updaterId)) {
+            return;
+        }
+        
+        if (updaterId.equals(targetUser.getId())) {
+            return;
+        }
+        
+        throw new UserServiceException("User does not have permission to update this user.", "INSUFFICIENT_PERMISSIONS");
+    }
+
+    private void validateUserDeletePermission(Long deleterId, User targetUser) {
+        User deleter = userRepository.findById(deleterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Deleter not found with id: " + deleterId));
+        
+        String deleterRole = deleter.getRole().name();
+        
+        if ("SUPER_USER".equals(deleterRole)) {
+            return;
+        }
+        
+        if ("POLICE_STATION".equals(deleterRole) && 
+            targetUser.getCreatedBy() != null && 
+            targetUser.getCreatedBy().equals(deleterId)) {
+            return;
+        }
+        
+        throw new UserServiceException("User does not have permission to delete this user.", "INSUFFICIENT_PERMISSIONS");
+    }
+
+    private UserResponseDto mapToUserResponseDto(User user) {
+        UserResponseDto dto = new UserResponseDto();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole().name());
+        dto.setCreatedBy(user.getCreatedBy());
+        dto.setActive(user.isActive());
+
+        if (user.getUserProfile() != null) {
+            dto.setFirstName(user.getUserProfile().getFirstName());
+            dto.setLastName(user.getUserProfile().getLastName());
+            dto.setPhone(user.getUserProfile().getPhone());
+            dto.setBadgeNumber(user.getUserProfile().getBadgeNumber());
+        }
+        return dto;
+    }
 }
